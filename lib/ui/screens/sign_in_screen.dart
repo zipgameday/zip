@@ -120,21 +120,6 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 14.0, horizontal: 40.0),
-                      child: CustomFlatButton(
-                        title: "Facebook Login",
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        textColor: Colors.white,
-                        onPressed: () { },
-                        splashColor: Colors.black12,
-                        borderColor: Color.fromRGBO(59, 89, 152, 1.0),
-                        borderWidth: 0,
-                        color: Color.fromRGBO(59, 89, 152, 1.0),
-                      ),
-                    ),
                   ],
                 ),
                 SafeArea(
