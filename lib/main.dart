@@ -5,6 +5,10 @@ import 'package:zip/ui/screens/sign_up_screen.dart';
 import 'package:zip/ui/screens/main_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:location_permissions/location_permissions.dart';
+
+
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +21,8 @@ void main() {
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
   MyApp({this.prefs});
+  // PermissionStatus permission;
+  // Future<PermissionStatus> _getPermission() async => permission = await LocationPermissions().requestPermissions();
 
   @override
   Widget build(BuildContext context) {

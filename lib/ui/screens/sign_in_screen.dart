@@ -105,21 +105,6 @@ class _SignInScreenState extends State<SignInScreen> {
                         color: Color.fromRGBO(212, 20, 15, 1.0),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Text(
-                        "OR",
-                        softWrap: true,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.black,
-                          decoration: TextDecoration.none,
-                          fontSize: 15.0,
-                          fontWeight: FontWeight.w300,
-                          fontFamily: "OpenSans",
-                        ),
-                      ),
-                    ),
                   ],
                 ),
                 SafeArea(

@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:zip/business/auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zip/models/user.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:flutter/services.dart';
+import 'dart:async';
 
 class MainScreen extends StatefulWidget {
   final FirebaseUser firebaseUser;
@@ -29,7 +33,11 @@ class _MainScreenState extends State<MainScreen> {
         leading: new IconButton(
             icon: new Icon(Icons.menu),
             onPressed: () => _scaffoldKey.currentState.openDrawer()),
-        title: Text("Home"),
+        title: TextField(
+          decoration: InputDecoration(
+            hintText: 'Where to?'
+          ),
+        ),
         centerTitle: true,
       ),
       drawer: Drawer(
@@ -49,36 +57,62 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
-      body: StreamBuilder(
-        stream: Auth.getUser(widget.firebaseUser.uid),
-        builder: (BuildContext context, AsyncSnapshot<User> snapshot) {
-          if (!snapshot.hasData) {
-            return Center(
-              child: CircularProgressIndicator(
-                valueColor: new AlwaysStoppedAnimation<Color>(
-                  Color.fromRGBO(212, 20, 15, 1.0),
-                ),
-              ),
-            );
-          } else {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Text("Name: ${snapshot.data.firstName}"),
-                  Text("Email: ${snapshot.data.email}"),
-                  Text("UID: ${snapshot.data.userID}"),
-                ],
-              ),
-            );
-          }
-        },
-      ),
+      body: TheMap(),
     );
   }
 
   void _logOut() async {
     Auth.signOut();
+  }
+}
+
+class TheMap extends StatefulWidget {
+  @override
+  State<TheMap> createState() => MapScreen();
+}
+
+class MapScreen extends State<TheMap> {
+  static LatLng _initialPosition;
+  final Set<Marker> _markers = {};
+  static LatLng _lastMapPosition = _initialPosition;
+  Completer<GoogleMapController> _controller = Completer();
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserLocation();
+  }
+
+  static final CameraPosition _currentPosition = CameraPosition(
+    target: LatLng(_initialPosition.latitude, _initialPosition.longitude),
+    zoom: 14.4746,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      body: _initialPosition == null
+          ? Text("Loading Location")
+          : GoogleMap(
+              mapType: MapType.normal,
+              initialCameraPosition: _currentPosition,
+              onMapCreated: (GoogleMapController controller) {
+                _controller.complete(controller);
+              },
+              myLocationButtonEnabled: true,
+              myLocationEnabled: true,
+              mapToolbarEnabled: true,
+            ),
+    );
+  }
+
+  void _getUserLocation() async {
+    Position position = await Geolocator()
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    List<Placemark> placemark = await Geolocator()
+        .placemarkFromCoordinates(position.latitude, position.longitude);
+    setState(() {
+      _initialPosition = LatLng(position.latitude, position.longitude);
+    });
   }
 }
