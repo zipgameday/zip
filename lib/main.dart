@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:zip/ui/screens/root_screen.dart';
 import 'package:zip/ui/screens/sign_in_screen.dart';
 import 'package:zip/ui/screens/sign_up_screen.dart';
@@ -7,6 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:location_permissions/location_permissions.dart';
+
+import 'business/auth.dart';
 
 
 
@@ -26,20 +30,25 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Zip Gameday',
-      debugShowCheckedModeBanner: false,
-      routes: <String, WidgetBuilder>{
-        '/root': (BuildContext context) => new RootScreen(),
-        '/signin': (BuildContext context) => new SignInScreen(),
-        '/signup': (BuildContext context) => new SignUpScreen(),
-        '/main': (BuildContext context) => new MainScreen(),
-      },
-      theme: ThemeData(
-        primaryColor: Colors.white,
-        primarySwatch: Colors.grey,
+    return MultiProvider(
+      providers: [
+        StreamProvider<FirebaseUser>.value(value: AuthService().user),
+      ],
+      child: MaterialApp(
+        title: 'Zip Gameday',
+        debugShowCheckedModeBanner: false,
+        routes: <String, WidgetBuilder>{
+          '/root': (BuildContext context) => new RootScreen(),
+          '/signin': (BuildContext context) => new SignInScreen(),
+          '/signup': (BuildContext context) => new SignUpScreen(),
+          '/main': (BuildContext context) => new MainScreen(),
+        },
+        theme: ThemeData(
+          primaryColor: Colors.white,
+          primarySwatch: Colors.grey,
+        ),
+        home: _handleCurrentScreen(),
       ),
-      home: _handleCurrentScreen(),
     );
   }
 
