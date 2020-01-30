@@ -9,7 +9,7 @@
 .buildlog/
 .history
 .svn/
-pubspec.lock
+./pubspec.lock
 
 # IntelliJ related
 *.iml
