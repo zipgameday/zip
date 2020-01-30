@@ -92,7 +92,11 @@ class MapScreen extends State<TheMap> {
   Widget build(BuildContext context) {
     return new Scaffold(
       body: _initialPosition == null
-          ? Text("Loading Location")
+          ? Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+            ),
+          )
           : GoogleMap(
               mapType: MapType.normal,
               initialCameraPosition: _currentPosition,
