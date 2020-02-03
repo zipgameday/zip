@@ -20,6 +20,7 @@ class _SignInScreenState extends State<SignInScreen> {
   CustomTextField _passwordField;
   bool _blackVisible = false;
   VoidCallback onBackPress;
+  final auth = AuthService();
 
   @override
   void initState() {
@@ -230,11 +231,11 @@ class _SignInScreenState extends State<SignInScreen> {
       try {
         SystemChannels.textInput.invokeMethod('TextInput.hide');
         _changeBlackVisible();
-        await Auth.signIn(email, password)
+        await auth.signIn(email, password)
             .then((uid) => Navigator.of(context).pop());
       } catch (e) {
         print("Error in email sign in: $e");
-        String exception = Auth.getExceptionText(e);
+        String exception = auth.getExceptionText(e);
         _showErrorAlert(
           title: "Login failed",
           content: exception,

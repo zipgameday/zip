@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:zip/business/auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zip/models/user.dart';
@@ -40,12 +41,28 @@ class _MainScreenState extends State<MainScreen> {
         ),
         centerTitle: true,
       ),
-      drawer: Drawer(
+      drawer: buildDrawer(context),
+      body: TheMap(),
+    );
+  }
+
+  void _logOut() async {
+    AuthService().signOut();
+  }
+
+  Widget buildDrawer(BuildContext context) {
+    var user = Provider.of<FirebaseUser>(context);
+    return Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
             DrawerHeader(
-              child: Text('Drawer Header'),
+              child: Column(
+                children: [
+                  Text('Drawer Header'),
+                  Text('Name: ${user.displayName}'),
+                  Text('Email: ${user.email}'),
+                  ]),
             ),
             ListTile(
               title: Text('Log Out'),
@@ -56,13 +73,7 @@ class _MainScreenState extends State<MainScreen> {
             ),
           ],
         ),
-      ),
-      body: TheMap(),
-    );
-  }
-
-  void _logOut() async {
-    Auth.signOut();
+      );
   }
 }
 
@@ -92,7 +103,11 @@ class MapScreen extends State<TheMap> {
   Widget build(BuildContext context) {
     return new Scaffold(
       body: _initialPosition == null
-          ? Text("Loading Location")
+          ? Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+            ),
+          )
           : GoogleMap(
               mapType: MapType.normal,
               initialCameraPosition: _currentPosition,
