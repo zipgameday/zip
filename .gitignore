@@ -22,7 +22,7 @@ pubspec.lock
 .project
 .settings/
 .vscode/
-pubspec.lock
+./pubspec.lock
 
 # Flutter repo-specific
 /bin/cache/
