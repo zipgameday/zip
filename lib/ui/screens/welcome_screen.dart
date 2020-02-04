@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zip/ui/widgets/custom_flat_button.dart';
 import 'package:flutter_auth_buttons/flutter_auth_buttons.dart';
 import 'package:zip/business/auth.dart';
+import 'package:zip/ui/widgets/custom_gplus_fb_btn.dart';
 
 class WelcomeScreen extends StatelessWidget {
   @override
@@ -81,21 +82,20 @@ class WelcomeScreen extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(
-                vertical: 14.0, horizontal: 40.0),
+            padding: const EdgeInsets.only(
+                top: 25.0, right: 5.0),
             child: Center(
-              child: GoogleSignInButton(
+              child: GoogleButton(
                 onPressed: () { AuthService().googleSignIn(); },
-                borderRadius: 12,
               ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(
-                vertical: 14.0, horizontal: 40.0),
+            padding: const EdgeInsets.only(
+                top: 5.0),
             child: Center(
               child: FacebookSignInButton(onPressed: () { },
-                borderRadius: 12,
+              borderRadius: 12.0,
               ),
             ),
           ),

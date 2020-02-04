@@ -1,35 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:zip/CustomIcons/custom_icons_icons.dart';
+import 'package:flutter/material.dart';
+import 'package:zip/ui/widgets/custom_flat_button.dart';
+import 'package:flutter_auth_buttons/flutter_auth_buttons.dart';
+import 'package:zip/business/auth.dart';
 
-class CustomCircleButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  final Color color;
-  final Color splashColor;
-  final Color borderColor;
-  final double borderWidth;
-  final Icon customIcon;
+class GoogleButton extends StatelessWidget {
+  
+final VoidCallback onPressed;
 
-  CustomCircleButton(
-      {this.onPressed,
-      this.color,
-      this.splashColor,
-      this.borderColor,
-      this.borderWidth,
-      this.customIcon});
+GoogleButton(
+      {this.onPressed});
+  
 
   @override
   Widget build(BuildContext context) {
-    return FlatButton(
+    return RaisedButton(
+      elevation: 1.0,
       onPressed: onPressed,
-      color: color,
-      splashColor: splashColor,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 13.0),
-        child: customIcon,
+      color: Colors.white,
+      splashColor: Colors.black12,
+      child: Container(
+        width: 225.0,
+        height: 40.0, 
+        child: Row(
+          children: <Widget>[
+            Icon(CustomIcons.google, color: Colors.red),
+            Padding(
+              padding: EdgeInsets.only(left: 25.0),
+              child: Text(
+                "Sign in with Google",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey,
+                  decoration: TextDecoration.none,
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: "OpenSans",
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-      shape: CircleBorder(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
         side: BorderSide(
-          color: borderColor,
-          width: borderWidth,
+          color: Colors.grey[300],
         ),
       ),
     );

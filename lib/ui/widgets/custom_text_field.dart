@@ -78,3 +78,71 @@ class _CustomTextFieldState extends State<CustomTextField> {
         );
   }
 }
+
+
+class CustomTextField2 extends StatefulWidget {
+  final String hint;
+  final TextEditingController controller;
+  final Color baseColor;
+  final Color borderColor;
+  final Color errorColor;
+  final TextInputType inputType;
+  final bool obscureText;
+  final Function validator;
+  final Function onChanged;
+  final Icon customTextIcon;
+  CustomTextField2(
+      {this.hint,
+      this.controller,
+      this.baseColor,
+      this.onChanged,
+      this.borderColor,
+      this.errorColor,
+      this.inputType = TextInputType.text,
+      this.obscureText = false,
+      this.validator,
+      this.customTextIcon
+      });
+
+  _CustomTextFieldState2 createState() => _CustomTextFieldState2();
+}
+
+class _CustomTextFieldState2 extends State<CustomTextField2> {
+  Color currentColor;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+            elevation: 0.0,
+            shape: RoundedRectangleBorder(
+              side: BorderSide(
+              color: Colors.black,
+              width: 0.5,
+            ),
+          ),
+          color: Colors.white,
+          child: TextField(
+              onTap: (){},
+              style: TextStyle(
+                  color: Color.fromRGBO(76, 86, 96, 1.0),
+                  fontFamily: "OpenSans",
+                  fontWeight: FontWeight.w300,
+                  decoration: TextDecoration.none
+            ),
+            decoration: InputDecoration(
+              prefixIcon: Padding(
+              padding: const EdgeInsets.only(),
+              child: widget.customTextIcon,
+              ),
+              border: InputBorder.none,
+            ),
+          ),
+      );
+  }
+}
+

@@ -60,9 +60,16 @@ class _MainScreenState extends State<MainScreen> {
               child: Column(
                 children: [
                   Text('Drawer Header'),
-                  Text('Name: ${user.displayName}'),
+                  //Think it needs to display first/lastname
+                  //Text('Name: ${user.displayName}'),
                   Text('Email: ${user.email}'),
                   ]),
+            ),
+            ListTile(
+              title: Text('Edit Profile'),
+              onTap: () {
+                Navigator.of(context).pushNamed('/profile');
+              },
             ),
             ListTile(
               title: Text('Log Out'),

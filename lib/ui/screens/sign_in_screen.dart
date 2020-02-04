@@ -112,32 +112,6 @@ class _SignInScreenState extends State<SignInScreen> {
                         color: Color.fromRGBO(76, 86, 96, 1.0),
                       ),
                     ),
-                    Padding(
-                          padding: EdgeInsets.only(
-                              top: 10.0, bottom: 20.0, left: 110.0, right: 0.0),
-                          child: Row(
-                            children: <Widget>[
-                              CustomCircleButton(
-                                color: Color(0xFF3B5998),
-                                splashColor: Colors.black12,
-                                borderColor: Color.fromRGBO(188, 224, 253, 0.0),
-                                onPressed: () { },
-                                borderWidth: 2.0,
-                                customIcon: Icon(CustomIcons.facebook, size: 35, 
-                                                    color: Colors.white),
-                              ),
-                              CustomCircleButton(
-                              color: Color(0xFFD93F21),
-                              splashColor: Colors.black12,
-                              borderColor: Color.fromRGBO(188, 224, 253, 0.0),
-                              onPressed: () { },
-                              borderWidth: 2.0,
-                              customIcon: Icon(CustomIcons.google, size: 35, 
-                                                  color: Colors.white),
-                            ),
-                          ],
-                        ),
-                      ),
                       Padding(
                         padding: EdgeInsets.only(
                           top: 10.0, bottom: 20.0, left: 10.0, right: 0.0),
