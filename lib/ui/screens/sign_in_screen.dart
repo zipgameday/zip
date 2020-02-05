@@ -18,6 +18,7 @@ class _SignInScreenState extends State<SignInScreen> {
   CustomTextField _passwordField;
   bool _blackVisible = false;
   VoidCallback onBackPress;
+  final auth = AuthService();
 
   @override
   void initState() {
@@ -105,36 +106,6 @@ class _SignInScreenState extends State<SignInScreen> {
                         color: Color.fromRGBO(212, 20, 15, 1.0),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Text(
-                        "OR",
-                        softWrap: true,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.black,
-                          decoration: TextDecoration.none,
-                          fontSize: 15.0,
-                          fontWeight: FontWeight.w300,
-                          fontFamily: "OpenSans",
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 14.0, horizontal: 40.0),
-                      child: CustomFlatButton(
-                        title: "Facebook Login",
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        textColor: Colors.white,
-                        onPressed: () { },
-                        splashColor: Colors.black12,
-                        borderColor: Color.fromRGBO(59, 89, 152, 1.0),
-                        borderWidth: 0,
-                        color: Color.fromRGBO(59, 89, 152, 1.0),
-                      ),
-                    ),
                   ],
                 ),
                 SafeArea(
@@ -179,11 +150,11 @@ class _SignInScreenState extends State<SignInScreen> {
       try {
         SystemChannels.textInput.invokeMethod('TextInput.hide');
         _changeBlackVisible();
-        await Auth.signIn(email, password)
+        await auth.signIn(email, password)
             .then((uid) => Navigator.of(context).pop());
       } catch (e) {
         print("Error in email sign in: $e");
-        String exception = Auth.getExceptionText(e);
+        String exception = auth.getExceptionText(e);
         _showErrorAlert(
           title: "Login failed",
           content: exception,
