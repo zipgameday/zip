@@ -91,6 +91,7 @@ class CustomTextField2 extends StatefulWidget {
   final Function validator;
   final Function onChanged;
   final Icon customTextIcon;
+  bool isEditable;
   CustomTextField2(
       {this.hint,
       this.controller,
@@ -101,7 +102,8 @@ class CustomTextField2 extends StatefulWidget {
       this.inputType = TextInputType.text,
       this.obscureText = false,
       this.validator,
-      this.customTextIcon
+      this.customTextIcon,
+      this.isEditable
       });
 
   _CustomTextFieldState2 createState() => _CustomTextFieldState2();
@@ -127,7 +129,9 @@ class _CustomTextFieldState2 extends State<CustomTextField2> {
           ),
           color: Colors.white,
           child: TextField(
-              onTap: (){},
+              enabled: widget.isEditable,
+              onChanged: (text) {
+            },
               style: TextStyle(
                   color: Color.fromRGBO(76, 86, 96, 1.0),
                   fontFamily: "OpenSans",

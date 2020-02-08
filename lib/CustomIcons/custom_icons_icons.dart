@@ -16,6 +16,10 @@
 ///         Author:    Google
 ///         License:   Apache 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
 ///         Homepage:  https://design.google.com/icons/
+/// * Elusive, Copyright (C) 2013 by Aristeides Stathopoulos
+///         Author:    Aristeides Stathopoulos
+///         License:   SIL (http://scripts.sil.org/OFL)
+///         Homepage:  http://aristeides.com/
 /// * Font Awesome, Copyright (C) 2016 by Dave Gandy
 ///         Author:    Dave Gandy
 ///         License:   SIL ()
@@ -29,6 +33,7 @@ class CustomIcons {
   static const _kFontFam = 'CustomIcons';
 
   static const IconData lock = const IconData(0xe800, fontFamily: _kFontFam);
+  static const IconData fire = const IconData(0xe801, fontFamily: _kFontFam);
   static const IconData facebook = const IconData(0xf09a, fontFamily: _kFontFam);
   static const IconData google = const IconData(0xf1a0, fontFamily: _kFontFam);
 }

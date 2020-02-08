@@ -8,6 +8,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 
+import 'package:zip/ui/screens/promos_screen.dart';
+
 class MainScreen extends StatefulWidget {
   final FirebaseUser firebaseUser;
 
@@ -69,6 +71,12 @@ class _MainScreenState extends State<MainScreen> {
               title: Text('Edit Profile'),
               onTap: () {
                 Navigator.of(context).pushNamed('/profile');
+              },
+            ),
+            ListTile(
+              title: Text('Promos'),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => PromosScreen()));
               },
             ),
             ListTile(
