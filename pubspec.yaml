@@ -25,6 +25,7 @@ dependencies:
   firebase_core: 
   firebase_auth:
   firebase_analytics:
+  firebase_messaging: ^5.0.2
   provider:
   font_awesome_flutter: 8.4.0
   google_sign_in: 
@@ -32,7 +33,6 @@ dependencies:
   flutter_swiper:
   google_maps_flutter: ^0.5.11
   geolocator: ^5.2.0
-  firebase_remote_config: ^0.3.0+1
   location_permissions: ^2.0.4+1
 
   # The following adds the Cupertino Icons font to your application.

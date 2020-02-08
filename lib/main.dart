@@ -16,7 +16,7 @@ import 'business/auth.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  Firestore.instance.settings(timestampsInSnapshotsEnabled: true);
+  Firestore.instance.settings();
   SharedPreferences.getInstance().then((prefs) {
     runApp(MyApp(prefs: prefs));
   });
