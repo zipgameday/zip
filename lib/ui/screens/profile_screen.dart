@@ -6,6 +6,16 @@ import 'package:zip/business/validator.dart';
 import 'package:zip/models/user.dart';
 import 'package:zip/ui/screens/main_screen.dart';
 import 'package:zip/ui/widgets/custom_text_field.dart';
+import 'dart:core';
+import "package:flutter/material.dart";
+import 'package:zip/business/auth.dart';
+import "package:zip/ui/widgets/custom_text_field.dart";
+import 'package:zip/business/validator.dart';
+import 'package:flutter/services.dart';
+import 'package:zip/models/user.dart';
+import 'package:zip/ui/widgets/custom_flat_button.dart';
+import 'package:zip/ui/widgets/custom_alert_dialog.dart';
+import 'package:zip/ui/widgets/custom_gplus_fb_btn.dart';
 
 class ProfileScreen extends StatefulWidget {
   //final User user;
@@ -14,12 +24,19 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   VoidCallback onBackPress;
-  final TextEditingController _firstname = new TextEditingController();
-  final TextEditingController _lastname = new TextEditingController();
-  final TextEditingController _number = new TextEditingController();
-  final TextEditingController _email = new TextEditingController();
-  final TextEditingController _password = new TextEditingController();
-  final TextEditingController _homeAddress = new TextEditingController();
+  final auth = AuthService();
+  final TextEditingController _firstname =
+      new TextEditingController(text: "Chris");
+  final TextEditingController _lastname =
+      new TextEditingController(text: "Reed");
+  final TextEditingController _number =
+      new TextEditingController(text: "334-470-7212");
+  final TextEditingController _email =
+      new TextEditingController(text: "cjr0033@auburn.edu");
+  final TextEditingController _password =
+      new TextEditingController(text: "123456789");
+  final TextEditingController _homeAddress =
+      new TextEditingController(text: "56789245");
   CustomTextField2 _firstnameField;
   CustomTextField2 _lastnameField;
   CustomTextField2 _phoneField;
@@ -125,7 +142,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: <Widget>[
-                              _isEditing ? new Container() : getEditButton(context),
+                              _isEditing
+                                  ? new Container()
+                                  : getEditButton(context),
                             ],
                           ),
                           FlatButton(
@@ -144,21 +163,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: buildCards(
                             context,
                             Icon(Icons.person,
-                                color: Color.fromRGBO(76, 86, 96, 1.0)))),
+                                color: Color.fromRGBO(76, 86, 96, 1.0)),
+                            _firstname)),
                     Padding(
                         padding: EdgeInsets.symmetric(
                             vertical: 4.0, horizontal: 10.0),
                         child: buildCards(
                             context,
                             Icon(Icons.person,
-                                color: Color.fromRGBO(76, 86, 96, 1.0)))),
+                                color: Color.fromRGBO(76, 86, 96, 1.0)),
+                            _lastname)),
                     Padding(
                       padding:
                           EdgeInsets.symmetric(vertical: 4.0, horizontal: 10.0),
                       child: buildCards(
                           context,
                           Icon(Icons.email,
-                              color: Color.fromRGBO(76, 86, 96, 1.0))),
+                              color: Color.fromRGBO(76, 86, 96, 1.0)),
+                          _email),
                     ),
                     Padding(
                       padding:
@@ -166,7 +188,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: buildCards(
                           context,
                           Icon(Icons.phone,
-                              color: Color.fromRGBO(76, 86, 96, 1.0))),
+                              color: Color.fromRGBO(76, 86, 96, 1.0)),
+                          _number),
                     ),
                     Padding(
                         padding: EdgeInsets.symmetric(
@@ -174,14 +197,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: buildCards(
                             context,
                             Icon(Icons.lock,
-                                color: Color.fromRGBO(76, 86, 96, 1.0)))),
+                                color: Color.fromRGBO(76, 86, 96, 1.0)),
+                            _password)),
                     Padding(
                       padding:
                           EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
                       child: buildCards(
                           context,
                           Icon(Icons.home,
-                              color: Color.fromRGBO(76, 86, 96, 1.0))),
+                              color: Color.fromRGBO(76, 86, 96, 1.0)),
+                          _homeAddress),
                     ),
                     _isEditing ? getSaveAndCancel(context) : new Container(),
                   ],
@@ -223,13 +248,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget getEditButton(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.edit, color: Colors.white),
-      onPressed: (){
-        setState(() {
-          _isEditing = true;
+        icon: Icon(Icons.edit, color: Colors.white),
+        onPressed: () {
+          setState(() {
+            _isEditing = true;
+          });
         });
-      }
-    );
   }
 
 //if isEditing = true
@@ -243,8 +267,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: EdgeInsets.symmetric(horizontal: 10.0),
           child: RaisedButton(
             onPressed: () {
+               // _editInfo(
+              //   firstname: _firstname.text,
+              //   lastname: _lastname.text,
+              //   email: _email.text,
+              //   phone: _number.text,
+              //   password: _password.text,
+              //   home: _homeAddress.text,
+              // );
+              _editInfo(_homeAddress.text);
               setState(() {
-                _isEditing = false;
+                //reset all textEditing controllers text information.
+                //_updateTextEditingControllers();
+                 _isEditing = false;
               });
             },
             color: Color.fromRGBO(76, 86, 96, 1.0),
@@ -266,6 +301,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: RaisedButton(
             onPressed: () {
               setState(() {
+                //reset all textEditing Controllers.
+                //_updateTextEditingControllers();
                 _isEditing = false;
               });
             },
@@ -287,7 +324,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget buildCards(BuildContext context, final Icon prefIcon) {
+//TextEditingController controls what text is shown
+//Right now, it will just change to whatever you edit.
+//Once User provider is built, we will call that.
+  Widget buildCards(
+      BuildContext context, Icon prefIcon, TextEditingController controller) {
     return Card(
       elevation: 0.0,
       shape: RoundedRectangleBorder(
@@ -299,6 +340,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       color: Colors.white,
       child: TextField(
         enabled: _isEditing,
+        controller: controller,
         onChanged: (text) {},
         style: TextStyle(
             color: Color.fromRGBO(76, 86, 96, 1.0),
@@ -313,6 +355,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
           border: InputBorder.none,
         ),
       ),
+    );
+  }
+
+  /*void _editInfo(
+      {String firstname,
+      String lastname,
+      String phone,
+      String email,
+      String password,
+      String home,
+      BuildContext context}) async {
+    if (Validator.validateName(firstname) &&
+        Validator.validateName(lastname) &&
+        Validator.validateEmail(email) &&
+        Validator.validateNumber(number) &&
+        Validator.validatePassword(password) &&
+        await Validator.validateStreetAddress(home)) {
+      try {
+        SystemChannels.textInput.invokeMethod('TextInput.hide');
+        _changeBlackVisible();
+        //Updating information from user
+        User _updatedUser = new User({user.uid, firstname, lastname, phone, email, home})
+      } catch (e) {
+        print("Error when editing profile information: $e");
+        String exception = auth.getExceptionText(e);
+        _showErrorAlert(
+          title: "Edit profile failed",
+          content: exception,
+          onPressed: _changeBlackVisible,
+        );
+      }
+    }
+  }*/
+
+
+  Future<void> _editInfo(String home) async {
+    if (await Validator.validateStreetAddress(home))
+    {
+      print("111111111111111111111111111111111");
+    }
+    else{
+      print("nah");
+    }
+  }
+
+  //Updated user value.
+  // void _buildUser(String firstname, String lastname, String number, String email, String home) {
+  //   user.firstname = firstname;
+  //   user.lastname = lastname;
+  //   user.email = email;
+  //   user.number = number;
+  //   user.home = home;
+  // }
+
+  // void _updateTextEditingControllers() {
+  //   
+  // }
+
+  void _showErrorAlert({String title, String content, VoidCallback onPressed}) {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return CustomAlertDialog(
+          content: content,
+          title: title,
+          onPressed: onPressed,
+        );
+      },
     );
   }
 }
