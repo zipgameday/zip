@@ -191,14 +191,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               color: Color.fromRGBO(76, 86, 96, 1.0)),
                           _number),
                     ),
-                    Padding(
-                        padding: EdgeInsets.symmetric(
-                            vertical: 4.0, horizontal: 10.0),
-                        child: buildCards(
-                            context,
-                            Icon(Icons.lock,
-                                color: Color.fromRGBO(76, 86, 96, 1.0)),
-                            _password)),
+                    // Padding(
+                    //     padding: EdgeInsets.symmetric(
+                    //         vertical: 4.0, horizontal: 10.0),
+                    //     child: buildCards(
+                    //         context,
+                    //         Icon(Icons.lock,
+                    //             color: Color.fromRGBO(76, 86, 96, 1.0)),
+                    //         _password)),
                     Padding(
                       padding:
                           EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
@@ -209,6 +209,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           _homeAddress),
                     ),
                     _isEditing ? getSaveAndCancel(context) : new Container(),
+                    _isEditing
+                        ? Padding(
+                            padding: EdgeInsets.only(
+                                top: 10.0,
+                                bottom: 10.0,
+                                right: MediaQuery.of(context).size.width / 6,
+                                left: MediaQuery.of(context).size.width / 6),
+                            child: FlatButton(
+                                onPressed: () {},
+                                shape: RoundedRectangleBorder(
+                                    side: BorderSide(color: Colors.grey),
+                                    borderRadius: BorderRadius.circular(12.0)), 
+                                child: Text("Change Password",
+                                    softWrap: true,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Color.fromRGBO(76, 86, 96, 1.0),
+                                      fontSize: 24.0,
+                                      fontFamily: "OpenSans",
+                                      fontWeight: FontWeight.w300,
+                                    ))))
+                        : new Container(),
                   ],
                 ),
                 SafeArea(
@@ -267,7 +289,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: EdgeInsets.symmetric(horizontal: 10.0),
           child: RaisedButton(
             onPressed: () {
-               // _editInfo(
+              // _editInfo(
               //   firstname: _firstname.text,
               //   lastname: _lastname.text,
               //   email: _email.text,
@@ -279,7 +301,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               setState(() {
                 //reset all textEditing controllers text information.
                 //_updateTextEditingControllers();
-                 _isEditing = false;
+                _isEditing = false;
               });
             },
             color: Color.fromRGBO(76, 86, 96, 1.0),
@@ -389,13 +411,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }*/
 
-
   Future<void> _editInfo(String home) async {
-    if (await Validator.validateStreetAddress(home))
-    {
+    if (await Validator.validateStreetAddress(home)) {
       print("111111111111111111111111111111111");
-    }
-    else{
+    } else {
       print("nah");
     }
   }
@@ -410,7 +429,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // }
 
   // void _updateTextEditingControllers() {
-  //   
+  //
   // }
 
   void _showErrorAlert({String title, String content, VoidCallback onPressed}) {
