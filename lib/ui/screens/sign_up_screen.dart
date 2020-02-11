@@ -13,16 +13,20 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  final TextEditingController _fullname = new TextEditingController();
+  final TextEditingController _firstname = new TextEditingController();
+  final TextEditingController _lastname = new TextEditingController();
   final TextEditingController _number = new TextEditingController();
   final TextEditingController _email = new TextEditingController();
   final TextEditingController _password = new TextEditingController();
-  CustomTextField _nameField;
+  CustomTextField _firstnameField;
+  CustomTextField _lastnameField;
   CustomTextField _phoneField;
   CustomTextField _emailField;
   CustomTextField _passwordField;
   bool _blackVisible = false;
   VoidCallback onBackPress;
+
+  final auth = AuthService();
 
   @override
   void initState() {
@@ -32,12 +36,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
       Navigator.of(context).pop();
     };
 
-    _nameField = new CustomTextField(
+    _firstnameField = new CustomTextField(
       baseColor: Colors.grey,
       borderColor: Colors.grey[400],
       errorColor: Colors.red,
-      controller: _fullname,
-      hint: "Full Name",
+      controller: _firstname,
+      hint: "First Name",
+      validator: Validator.validateName,
+    );
+    _lastnameField = new CustomTextField(
+      baseColor: Colors.grey,
+      borderColor: Colors.grey[400],
+      errorColor: Colors.red,
+      controller: _lastname,
+      hint: "Last Name",
       validator: Validator.validateName,
     );
     _phoneField = new CustomTextField(
@@ -100,7 +112,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     Padding(
                       padding:
                           EdgeInsets.only(top: 20.0, left: 15.0, right: 15.0),
-                      child: _nameField,
+                      child: _firstnameField,
+                    ),
+                    Padding(
+                      padding:
+                          EdgeInsets.only(top: 20.0, left: 15.0, right: 15.0),
+                      child: _lastnameField,
                     ),
                     Padding(
                       padding:
@@ -127,7 +144,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         textColor: Colors.white,
                         onPressed: () {
                           _signUp(
-                              fullname: _fullname.text,
+                              firstname: _firstname.text,
+                              lastname: _lastname.text,
                               email: _email.text,
                               number: _number.text,
                               password: _password.text);
@@ -176,29 +194,36 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _signUp(
-      {String fullname,
+      {String firstname,
+      String lastname,
+      String phone,
       String number,
       String email,
       String password,
       BuildContext context}) async {
-    if (Validator.validateName(fullname) &&
+    if (Validator.validateName(firstname) &&
+        Validator.validateName(lastname) &&
         Validator.validateEmail(email) &&
         Validator.validateNumber(number) &&
         Validator.validatePassword(password)) {
       try {
         SystemChannels.textInput.invokeMethod('TextInput.hide');
         _changeBlackVisible();
-        await Auth.signUp(email, password).then((uID) {
-          Auth.addUser(new User(
-              userID: uID,
+        await auth.signUp(email, password).then((uid) {
+          auth.addUser(new User(
+              uid: uid,
               email: email,
-              firstName: fullname,
-              profilePictureURL: ''));
+              firstName: firstname,
+              lastName: lastname,
+              phone: number,
+              profilePictureURL: '',
+              lastActivity: DateTime.now(),
+              ));
           onBackPress();
         });
       } catch (e) {
         print("Error in sign up: $e");
-        String exception = Auth.getExceptionText(e);
+        String exception = auth.getExceptionText(e);
         _showErrorAlert(
           title: "Signup failed",
           content: exception,

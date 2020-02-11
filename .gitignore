@@ -9,7 +9,6 @@
 .buildlog/
 .history
 .svn/
-pubspec.lock
 
 # IntelliJ related
 *.iml
@@ -22,6 +21,7 @@ pubspec.lock
 .project
 .settings/
 .vscode/
+.pubspec.lock
 
 # Flutter repo-specific
 /bin/cache/
