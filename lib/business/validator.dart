@@ -1,3 +1,5 @@
+import 'package:geolocator/geolocator.dart';
+
 class Validator {
   static bool validateName(String text) {
     return text
@@ -20,4 +22,16 @@ class Validator {
   static bool validatePassword(String text) {
     return text.toString().length >= 6;
   }
+
+  static Future<bool> validateStreetAddress(String text) async {
+    try{
+       List<Placemark> placemark = await Geolocator()
+        .placemarkFromAddress(text);
+    }
+    catch(e){
+      return false;
+    }
+    return true;
+  }
+
 }

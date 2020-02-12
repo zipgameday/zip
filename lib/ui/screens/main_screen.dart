@@ -8,6 +8,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 
+import 'package:zip/ui/screens/promos_screen.dart';
+
 class MainScreen extends StatefulWidget {
   final FirebaseUser firebaseUser;
 
@@ -60,9 +62,22 @@ class _MainScreenState extends State<MainScreen> {
               child: Column(
                 children: [
                   Text('Drawer Header'),
-                  Text('Name: ${user.displayName}'),
+                  //Think it needs to display first/lastname
+                  //Text('Name: ${user.displayName}'),
                   Text('Email: ${user.email}'),
                   ]),
+            ),
+            ListTile(
+              title: Text('Edit Profile'),
+              onTap: () {
+                Navigator.of(context).pushNamed('/profile');
+              },
+            ),
+            ListTile(
+              title: Text('Promos'),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => PromosScreen()));
+              },
             ),
             ListTile(
               title: Text('Log Out'),

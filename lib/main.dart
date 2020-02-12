@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:zip/ui/screens/profile_screen.dart';
 import 'package:zip/ui/screens/root_screen.dart';
 import 'package:zip/ui/screens/sign_in_screen.dart';
 import 'package:zip/ui/screens/sign_up_screen.dart';
@@ -42,6 +43,7 @@ class MyApp extends StatelessWidget {
           '/signin': (BuildContext context) => new SignInScreen(),
           '/signup': (BuildContext context) => new SignUpScreen(),
           '/main': (BuildContext context) => new MainScreen(),
+          '/profile' : (BuildContext context) => new ProfileScreen(),
         },
         theme: ThemeData(
           primaryColor: Colors.white,
