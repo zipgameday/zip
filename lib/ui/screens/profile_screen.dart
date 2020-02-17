@@ -1,21 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:zip/business/auth.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zip/business/validator.dart';
-import 'package:zip/models/user.dart';
-import 'package:zip/ui/screens/main_screen.dart';
 import 'package:zip/ui/widgets/custom_text_field.dart';
 import 'dart:core';
-import "package:flutter/material.dart";
-import 'package:zip/business/auth.dart';
-import "package:zip/ui/widgets/custom_text_field.dart";
-import 'package:zip/business/validator.dart';
 import 'package:flutter/services.dart';
-import 'package:zip/models/user.dart';
-import 'package:zip/ui/widgets/custom_flat_button.dart';
 import 'package:zip/ui/widgets/custom_alert_dialog.dart';
-import 'package:zip/ui/widgets/custom_gplus_fb_btn.dart';
 
 class ProfileScreen extends StatefulWidget {
   //final User user;

@@ -1,9 +1,10 @@
-import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:zip/models/user.dart';
 import 'package:zip/ui/screens/welcome_screen.dart';
 import 'package:zip/ui/screens/main_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class RootScreen extends StatefulWidget {
   @override
@@ -13,7 +14,7 @@ class RootScreen extends StatefulWidget {
 class _RootScreenState extends State<RootScreen> {
   @override
   Widget build(BuildContext context) {
-    return new StreamBuilder<FirebaseUser>(
+    return StreamBuilder<FirebaseUser>(
       stream: FirebaseAuth.instance.onAuthStateChanged,
       builder: (BuildContext context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -22,7 +23,13 @@ class _RootScreenState extends State<RootScreen> {
           );
         } else {
           if (snapshot.hasData) {
-            return MainScreen();
+            return MultiProvider(
+              providers: [
+                StreamProvider<User>.value(value: Firestore.instance.collection('users')
+                  .document(snapshot.data.uid).snapshots().map((snap) => User.fromDocument(snap))),
+              ],
+              child: MainScreen(),
+              );
           } else {
             return WelcomeScreen();
           }
