@@ -70,7 +70,9 @@ class _PromosScreenState extends State<PromosScreen> {
                   right: MediaQuery.of(context).size.width / 4,
                   left: MediaQuery.of(context).size.width / 4),
               child: FlatButton(
-                onPressed: _increment,
+                onPressed: () {
+                  _increment();
+                },
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.0)),
                 color: Colors.white,
@@ -152,15 +154,28 @@ class _PromosScreenState extends State<PromosScreen> {
   );
 
   //Call to database to check credits.
+
   Widget buildProgressBar(BuildContext context) {
-    return LinearPercentIndicator(
-      width: MediaQuery.of(context).size.width / 1.2,
-      animation: false,
-      lineHeight: 20.0,
-      percent: _credits,
-      progressColor: Colors.grey,
-      backgroundColor: Colors.white,
-      center: Text((_credits * 100).round().toInt().toString() + '/' + '100'),
-    );
+    try {
+      return LinearPercentIndicator(
+        width: MediaQuery.of(context).size.width / 1.2,
+        animation: false,
+        lineHeight: 20.0,
+        percent: _credits,
+        progressColor: Colors.grey,
+        backgroundColor: Colors.white,
+        center: Text((_credits * 100).round().toInt().toString() + '/' + '100'),
+      );
+    } catch (e) {
+      return LinearPercentIndicator(
+        width: MediaQuery.of(context).size.width / 1.2,
+        animation: false,
+        lineHeight: 20.0,
+        percent: 1.0,
+        progressColor: Colors.grey,
+        backgroundColor: Colors.white,
+        center: Text((1.0 * 100).round().toInt().toString() + '/' + '100'),
+      );
+    }
   }
 }
