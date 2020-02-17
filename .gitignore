@@ -9,7 +9,6 @@
 .buildlog/
 .history
 .svn/
-./pubspec.lock
 
 # IntelliJ related
 *.iml
@@ -22,7 +21,7 @@
 .project
 .settings/
 .vscode/
-./pubspec.lock
+.pubspec.lock
 
 # Flutter repo-specific
 /bin/cache/
@@ -94,6 +93,7 @@ unlinked_spec.ds
 **/ios/Flutter/flutter_export_environment.sh
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
+ios/Podfile.lock
 
 # macOS
 **/macos/Flutter/GeneratedPluginRegistrant.swift
