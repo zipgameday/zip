@@ -5,8 +5,6 @@ import 'package:zip/business/validator.dart';
 import 'package:flutter/services.dart';
 import 'package:zip/ui/widgets/custom_flat_button.dart';
 import 'package:zip/ui/widgets/custom_alert_dialog.dart';
-import 'package:zip/models/user.dart';
-import 'package:zip/ui/widgets/custom_gplus_fb_btn.dart';
 import 'package:zip/CustomIcons/custom_icons_icons.dart';
 
 class SignInScreen extends StatefulWidget {

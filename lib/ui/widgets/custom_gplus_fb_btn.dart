@@ -1,18 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:zip/CustomIcons/custom_icons_icons.dart';
-import 'package:flutter/material.dart';
-import 'package:zip/ui/widgets/custom_flat_button.dart';
-import 'package:flutter_auth_buttons/flutter_auth_buttons.dart';
-import 'package:zip/business/auth.dart';
 
 class GoogleButton extends StatelessWidget {
   
 final VoidCallback onPressed;
 
-GoogleButton(
-      {this.onPressed});
-  
-
+GoogleButton({this.onPressed});
   @override
   Widget build(BuildContext context) {
     return RaisedButton(
