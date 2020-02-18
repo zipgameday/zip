@@ -8,6 +8,8 @@ class User {
   final String phone;
   final String email;
   final String profilePictureURL;
+  final double credits;
+  final String homeAddress;
   final DateTime lastActivity;
 
   User({
@@ -16,6 +18,8 @@ class User {
     this.lastName,
     this.phone,
     this.email,
+    this.credits,
+    this.homeAddress,
     this.lastActivity,
     this.profilePictureURL,
   });
@@ -23,12 +27,14 @@ class User {
   Map<String, Object> toJson() {
     return {
       'uid': uid,
-      'firstName': firstName,
-      'lastName': lastName,
-      'phone': phone,
+      'firstName': firstName == null ? '' : firstName,
+      'lastName': lastName == null ? '' : lastName,
+      'phone': phone == null ? '' : phone,
       'lastActivity': lastActivity,
       'email': email == null ? '' : email,
-      'profilePictureURL': profilePictureURL
+      'credits': credits == null ? 0 : credits,
+      'homeAddress': homeAddress == null ? '' : homeAddress,
+      'profilePictureURL': profilePictureURL == null ? '' : profilePictureURL
     };
   }
 
@@ -40,6 +46,8 @@ class User {
       lastActivity: convertStamp(doc['lastActivity']),
       phone: doc['phone'],
       email: doc['email'],
+      credits: doc['credits'],
+      homeAddress: doc['homeAddress'],
       profilePictureURL: doc['profilePictureURL'],
     );
     return user;
