@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:zip/business/auth.dart';
 import 'package:zip/business/validator.dart';
@@ -5,33 +6,22 @@ import 'package:zip/ui/widgets/custom_text_field.dart';
 import 'dart:core';
 import 'package:flutter/services.dart';
 import 'package:zip/ui/widgets/custom_alert_dialog.dart';
+import 'package:zip/models/user.dart';
+import 'package:provider/provider.dart';
+// Temp imports
 
 class ProfileScreen extends StatefulWidget {
-  //final User user;
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
   VoidCallback onBackPress;
   final auth = AuthService();
-  final TextEditingController _firstname =
-      new TextEditingController(text: "Chris");
-  final TextEditingController _lastname =
-      new TextEditingController(text: "Reed");
-  final TextEditingController _number =
-      new TextEditingController(text: "334-470-7212");
-  final TextEditingController _email =
-      new TextEditingController(text: "cjr0033@auburn.edu");
-  final TextEditingController _password =
-      new TextEditingController(text: "123456789");
-  final TextEditingController _homeAddress =
-      new TextEditingController(text: "56789245");
-  CustomTextField2 _firstnameField;
-  CustomTextField2 _lastnameField;
-  CustomTextField2 _phoneField;
-  CustomTextField2 _emailField;
-  CustomTextField2 _passwordField;
-  CustomTextField2 _homeAddressField;
+  TextEditingController _firstname;
+  TextEditingController _lastname;
+  TextEditingController _number;
+  TextEditingController _email;
+  TextEditingController _homeAddress;
   bool _blackVisible = false;
   bool _isEditing = false;
 
@@ -42,71 +32,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     onBackPress = () {
       Navigator.of(context).pop();
     };
-
-    _firstnameField = new CustomTextField2(
-        baseColor: Colors.grey,
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _firstname,
-        hint: "First Name",
-        validator: Validator.validateName,
-        customTextIcon:
-            Icon(Icons.person, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
-    _lastnameField = new CustomTextField2(
-        baseColor: Colors.grey,
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _lastname,
-        hint: "Last Name",
-        validator: Validator.validateName,
-        customTextIcon:
-            Icon(Icons.person, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
-    _phoneField = new CustomTextField2(
-        baseColor: Colors.grey[400],
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _number,
-        hint: "Phone Number",
-        validator: Validator.validateNumber,
-        inputType: TextInputType.number,
-        customTextIcon:
-            Icon(Icons.phone, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
-    _emailField = new CustomTextField2(
-        baseColor: Colors.grey[400],
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _email,
-        hint: "E-mail Address",
-        inputType: TextInputType.emailAddress,
-        validator: Validator.validateEmail,
-        customTextIcon:
-            Icon(Icons.mail, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
-    _passwordField = new CustomTextField2(
-        baseColor: Colors.grey[400],
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _password,
-        obscureText: true,
-        hint: "Password",
-        validator: Validator.validatePassword,
-        customTextIcon:
-            Icon(Icons.lock, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
-    _homeAddressField = new CustomTextField2(
-        baseColor: Colors.grey[400],
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _password,
-        obscureText: true,
-        hint: "Password",
-        validator: Validator.validatePassword,
-        customTextIcon:
-            Icon(Icons.home, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
   }
 
   @override
@@ -209,7 +134,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 onPressed: () {},
                                 shape: RoundedRectangleBorder(
                                     side: BorderSide(color: Colors.grey),
-                                    borderRadius: BorderRadius.circular(12.0)), 
+                                    borderRadius: BorderRadius.circular(12.0)),
                                 child: Text("Change Password",
                                     softWrap: true,
                                     textAlign: TextAlign.center,
@@ -387,7 +312,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         SystemChannels.textInput.invokeMethod('TextInput.hide');
         _changeBlackVisible();
         //Updating information from user
-        User _updatedUser = new User({user.uid, firstname, lastname, phone, email, home})
+        newUser = {
+          'name' : name
+        }
       } catch (e) {
         print("Error when editing profile information: $e");
         String exception = auth.getExceptionText(e);
@@ -434,4 +361,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
     );
   }
+
+  /*void _initializeControllers() {
+    _firstname = new TextEditingController(text: user.firstName);
+    _lastname = new TextEditingController(text: user.lastName);
+    try {
+      _number = new TextEditingController(text: user.phone);
+    } catch (e) {
+      _number = new TextEditingController(text: "");
+    }
+    try {
+      _email = new TextEditingController(text: user.email);
+    } catch (e) {
+      _email = new TextEditingController(text: "");
+    }
+    try {
+      _homeAddress = new TextEditingController(text: user.homeAddress);
+    } catch (e) {
+      _homeAddress = new TextEditingController(text: "");
+    }
+  }*/
 }

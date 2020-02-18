@@ -70,8 +70,8 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               title: Text('Edit Profile'),
               onTap: () {
-                Navigator.of(context).pop();
-                Navigator.pushNamed(context, '/profile');
+                 Navigator.of(context).pop();
+                 Navigator.pushNamed(context, '/profile');
               },
             ),
             ListTile(
