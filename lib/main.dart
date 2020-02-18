@@ -9,14 +9,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:location_permissions/location_permissions.dart';
-
 import 'business/auth.dart';
 
 
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  Firestore.instance.settings(timestampsInSnapshotsEnabled: true);
+  Firestore.instance.settings();
   SharedPreferences.getInstance().then((prefs) {
     runApp(MyApp(prefs: prefs));
   });

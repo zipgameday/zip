@@ -7,6 +7,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
+import 'package:zip/ui/screens/settings_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final FirebaseUser firebaseUser;
@@ -69,6 +70,12 @@ class _MainScreenState extends State<MainScreen> {
               onTap: () {
                 _logOut();
                 _scaffoldKey.currentState.openEndDrawer();
+              },
+            ),
+            ListTile(
+              title: Text('Settings'),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> SettingsScreen()));
               },
             ),
           ],
