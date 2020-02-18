@@ -1,31 +1,34 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:zip/business/auth.dart';
+import 'package:zip/business/user.dart';
 import 'package:zip/business/validator.dart';
+import 'package:zip/models/user.dart';
 import 'package:zip/ui/widgets/custom_text_field.dart';
 import 'dart:core';
 import 'package:flutter/services.dart';
 import 'package:zip/ui/widgets/custom_alert_dialog.dart';
 
 class ProfileScreen extends StatefulWidget {
-  //final User user;
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
   VoidCallback onBackPress;
-  final auth = AuthService();
+  final AuthService auth = AuthService();
+  final UserService userService = UserService();
   final TextEditingController _firstname =
-      new TextEditingController(text: "Chris");
+      new TextEditingController();
   final TextEditingController _lastname =
-      new TextEditingController(text: "Reed");
+      new TextEditingController();
   final TextEditingController _number =
-      new TextEditingController(text: "334-470-7212");
+      new TextEditingController();
   final TextEditingController _email =
-      new TextEditingController(text: "cjr0033@auburn.edu");
+      new TextEditingController();
   final TextEditingController _password =
-      new TextEditingController(text: "123456789");
+      new TextEditingController();
   final TextEditingController _homeAddress =
-      new TextEditingController(text: "56789245");
+      new TextEditingController();
   CustomTextField2 _firstnameField;
   CustomTextField2 _lastnameField;
   CustomTextField2 _phoneField;
@@ -34,6 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   CustomTextField2 _homeAddressField;
   bool _blackVisible = false;
   bool _isEditing = false;
+  User user;
 
   @override
   void initState() {
@@ -42,6 +46,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     onBackPress = () {
       Navigator.of(context).pop();
     };
+    user = userService.user;
+    print(user.firstName);
+
+    _firstname.text = user.firstName;
+    _lastname.text = user.lastName;
+    _number.text = user.phone;
+    _email.text = user.email;
+    _homeAddress.text = user.homeAddress;
 
     _firstnameField = new CustomTextField2(
         baseColor: Colors.grey,
