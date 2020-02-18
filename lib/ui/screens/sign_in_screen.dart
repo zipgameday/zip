@@ -5,7 +5,7 @@ import 'package:zip/business/validator.dart';
 import 'package:flutter/services.dart';
 import 'package:zip/ui/widgets/custom_flat_button.dart';
 import 'package:zip/ui/widgets/custom_alert_dialog.dart';
-import 'package:zip/models/user.dart';
+import 'package:zip/CustomIcons/custom_icons_icons.dart';
 
 class SignInScreen extends StatefulWidget {
   _SignInScreenState createState() => _SignInScreenState();
@@ -29,23 +29,26 @@ class _SignInScreenState extends State<SignInScreen> {
     };
 
     _emailField = new CustomTextField(
-      baseColor: Colors.grey,
+      baseColor: Colors.grey[400],
       borderColor: Colors.grey[400],
       errorColor: Colors.red,
       controller: _email,
-      hint: "E-mail Adress",
+      hint: "E-mail Address",
       inputType: TextInputType.emailAddress,
       validator: Validator.validateEmail,
+      customTextIcon: Icon(Icons.mail, color: Colors.grey[400])
     );
     _passwordField = CustomTextField(
-      baseColor: Colors.grey,
+      baseColor: Colors.grey[400],
       borderColor: Colors.grey[400],
       errorColor: Colors.red,
       controller: _password,
       obscureText: true,
       hint: "Password",
       validator: Validator.validatePassword,
+      customTextIcon: Icon(CustomIcons.lock, color: Colors.grey[400]),
     );
+
   }
 
   @override
@@ -53,6 +56,7 @@ class _SignInScreenState extends State<SignInScreen> {
     return WillPopScope(
       onWillPop: onBackPress,
       child: Scaffold(
+        backgroundColor: Colors.white,
         body: Stack(
           children: <Widget>[
             Stack(
@@ -66,11 +70,11 @@ class _SignInScreenState extends State<SignInScreen> {
                       child: Text(
                         "Sign In",
                         softWrap: true,
-                        textAlign: TextAlign.left,
+                        textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Color.fromRGBO(212, 20, 15, 1.0),
+                          color: Color.fromRGBO(76, 86, 96, 1.0),
                           decoration: TextDecoration.none,
-                          fontSize: 24.0,
+                          fontSize: 32.0,
                           fontWeight: FontWeight.w700,
                           fontFamily: "OpenSans",
                         ),
@@ -79,7 +83,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     Padding(
                       padding: EdgeInsets.only(
                           top: 20.0, bottom: 10.0, left: 15.0, right: 15.0),
-                      child: _emailField,
+                      child: _emailField
                     ),
                     Padding(
                       padding: EdgeInsets.only(
@@ -88,11 +92,11 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          vertical: 14.0, horizontal: 40.0),
+                          vertical: 20.0, horizontal: 40.0),
                       child: CustomFlatButton(
                         title: "Log In",
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
                         textColor: Colors.white,
                         onPressed: () {
                           _emailLogin(
@@ -103,9 +107,58 @@ class _SignInScreenState extends State<SignInScreen> {
                         splashColor: Colors.black12,
                         borderColor: Color.fromRGBO(212, 20, 15, 1.0),
                         borderWidth: 0,
-                        color: Color.fromRGBO(212, 20, 15, 1.0),
+                        color: Color.fromRGBO(76, 86, 96, 1.0),
                       ),
                     ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          top: 10.0, bottom: 20.0, left: 10.0, right: 0.0),
+                        child: CustomFlatButton(
+                          title: "Forgot Password?",
+                          textColor: Color.fromRGBO(76, 86, 96, 1.0),
+                          fontSize: 18.0,
+                          fontWeight: FontWeight.w400,
+                          onPressed: () {},
+                          color: Colors.white,
+                          splashColor: Colors.grey[100],
+                          borderColor: Colors.white,
+                          borderWidth: 0.0,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          top: 50.0, bottom: 20.0, left: 10.0, right: 0.0),
+                        child: Text(
+                          "Dont have an account?",
+                          textAlign: TextAlign.center,
+                          softWrap: true,
+                          style: TextStyle (
+                            color: Color.fromRGBO(76, 86, 96, 1.0),
+                            decoration: TextDecoration.none,
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.w400,
+                            fontFamily: "OpenSans",
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          top: 0.0, bottom: 60.0, left: 10.0, right: 0.0),
+                        child: CustomFlatButtonWithUnderline(
+                          title: "Click here",
+                          textColor: Color(0xFF0300F2),
+                          fontSize: 18.0,
+                          fontWeight: FontWeight.w400,
+                          //I would push the sign up page, 
+                          //but the user could hit the back
+                          //button and go to the sign in.
+                          onPressed: () {},
+                          color: Colors.white,
+                          splashColor: Colors.grey[100],
+                          borderColor: Colors.white,
+                          borderWidth: 0.0,
+                        ),
+                      ),
                   ],
                 ),
                 SafeArea(

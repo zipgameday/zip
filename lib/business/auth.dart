@@ -4,7 +4,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:zip/models/user.dart';
 import 'package:flutter/services.dart';
-import 'dart:async';
 
 enum authProblems { UserNotFound, PasswordNotValid, NetworkError, UnknownError }
 
@@ -60,7 +59,6 @@ class AuthService {
   }
 
   void addUser(User user) async {
-    DocumentReference userRef = _db.collection('users').document(user.uid);
     checkUserExist(user.uid).then((value) {
       if (!value) {
         print("user ${user.firstName} ${user.email} added");

@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zip/business/auth.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zip/models/user.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:flutter/services.dart';
 import 'dart:async';
+import 'package:zip/ui/screens/promos_screen.dart';
 
 class MainScreen extends StatefulWidget {
-  final FirebaseUser firebaseUser;
-
-  MainScreen({this.firebaseUser});
-
+  MainScreen();
   _MainScreenState createState() => _MainScreenState();
 }
 
@@ -22,7 +18,6 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    print(widget.firebaseUser);
   }
 
   @override
@@ -51,18 +46,40 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget buildDrawer(BuildContext context) {
-    var user = Provider.of<FirebaseUser>(context);
+    var user = Provider.of<User>(context);
+
+    _buildHeader() {
+      if(user == null) {
+        return DrawerHeader(child: Column());
+      } else {
+        return DrawerHeader(
+          child: Column(
+            children: [
+              Text('Name: ${user.firstName} ${user.lastName}'),
+              Text('Email: ${user.email}'),
+              ]),
+        );
+      }
+    }
+
     return Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            DrawerHeader(
-              child: Column(
-                children: [
-                  Text('Drawer Header'),
-                  Text('Name: ${user.displayName}'),
-                  Text('Email: ${user.email}'),
-                  ]),
+            _buildHeader(),
+            ListTile(
+              title: Text('Edit Profile'),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.pushNamed(context, '/profile');
+              },
+            ),
+            ListTile(
+              title: Text('Promos'),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.push(context, MaterialPageRoute(builder: (context) => PromosScreen()));
+              },
             ),
             ListTile(
               title: Text('Log Out'),
