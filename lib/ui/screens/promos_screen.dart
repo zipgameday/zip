@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:zip/CustomIcons/custom_icons_icons.dart';
+import 'package:zip/ui/widgets/custom_alert_dialog.dart';
 
 class PromosScreen extends StatefulWidget {
   @override
@@ -13,12 +14,7 @@ class _PromosScreenState extends State<PromosScreen> {
   @override
   void initState() {
     super.initState();
-    //Tested back button, not working.
-    //Same error as Profile_Screen.
-    //element.contains(element) != true
-    // onBackPress = () {
-    //     Navigator.of(context).pop();
-    //   };
+
     onBackPress = () {
       Navigator.of(context).pop();
     };
@@ -158,6 +154,7 @@ class _PromosScreenState extends State<PromosScreen> {
               left: MediaQuery.of(context).size.width / 4),
           child: FlatButton(
             onPressed: () {
+              //call cloud function to validate/get credit amount.
               if (_credits < 100) {
                 _increment();
               }
@@ -256,4 +253,19 @@ class _PromosScreenState extends State<PromosScreen> {
       ),
     );
   }
+
+  void _showErrorAlert({String title, String content, VoidCallback onPressed}) {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return CustomAlertDialog(
+          content: content,
+          title: title,
+          onPressed: onPressed,
+        );
+      },
+    );
+  }
+  
 }

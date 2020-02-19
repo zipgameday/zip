@@ -78,6 +78,7 @@ class AuthService {
     }, merge: true);
   }
 
+
   Future<void> updateUserData(FirebaseUser user) async {
     DocumentReference userRef = _db.collection('users').document(user.uid);
 

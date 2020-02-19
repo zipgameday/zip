@@ -22,6 +22,7 @@ class _RootScreenState extends State<RootScreen> {
         } else {
           if (snapshot.hasData) {
             UserService userService = UserService();
+            print(snapshot.data.uid);
             userService.setupService(snapshot.data.uid);
             return MainScreen();
           } else {

@@ -4,13 +4,9 @@ import 'package:zip/business/auth.dart';
 import 'package:zip/business/user.dart';
 import 'package:zip/business/validator.dart';
 import 'package:zip/models/user.dart';
-import 'package:zip/ui/widgets/custom_text_field.dart';
 import 'dart:core';
 import 'package:flutter/services.dart';
 import 'package:zip/ui/widgets/custom_alert_dialog.dart';
-import 'package:zip/models/user.dart';
-import 'package:provider/provider.dart';
-// Temp imports
 
 class ProfileScreen extends StatefulWidget {
   _ProfileScreenState createState() => _ProfileScreenState();
@@ -20,24 +16,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   VoidCallback onBackPress;
   final AuthService auth = AuthService();
   final UserService userService = UserService();
-  final TextEditingController _firstname =
-      new TextEditingController();
-  final TextEditingController _lastname =
-      new TextEditingController();
-  final TextEditingController _number =
-      new TextEditingController();
-  final TextEditingController _email =
-      new TextEditingController();
-  final TextEditingController _password =
-      new TextEditingController();
-  final TextEditingController _homeAddress =
-      new TextEditingController();
-  CustomTextField2 _firstnameField;
-  CustomTextField2 _lastnameField;
-  CustomTextField2 _phoneField;
-  CustomTextField2 _emailField;
-  CustomTextField2 _passwordField;
-  CustomTextField2 _homeAddressField;
+  final TextEditingController _firstname = new TextEditingController();
+  final TextEditingController _lastname = new TextEditingController();
+  final TextEditingController _number = new TextEditingController();
+  final TextEditingController _email = new TextEditingController();
+  //final TextEditingController _password = new TextEditingController();
+  final TextEditingController _homeAddress = new TextEditingController();
   bool _blackVisible = false;
   bool _isEditing = false;
   User user;
@@ -49,221 +33,167 @@ class _ProfileScreenState extends State<ProfileScreen> {
     onBackPress = () {
       Navigator.of(context).pop();
     };
-    user = userService.user;
-    print(user.firstName);
-
-    _firstname.text = user.firstName;
-    _lastname.text = user.lastName;
-    _number.text = user.phone;
-    _email.text = user.email;
-    _homeAddress.text = user.homeAddress;
-
-    _firstnameField = new CustomTextField2(
-        baseColor: Colors.grey,
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _firstname,
-        hint: "First Name",
-        validator: Validator.validateName,
-        customTextIcon:
-            Icon(Icons.person, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
-    _lastnameField = new CustomTextField2(
-        baseColor: Colors.grey,
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _lastname,
-        hint: "Last Name",
-        validator: Validator.validateName,
-        customTextIcon:
-            Icon(Icons.person, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
-    _phoneField = new CustomTextField2(
-        baseColor: Colors.grey[400],
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _number,
-        hint: "Phone Number",
-        validator: Validator.validateNumber,
-        inputType: TextInputType.number,
-        customTextIcon:
-            Icon(Icons.phone, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
-    _emailField = new CustomTextField2(
-        baseColor: Colors.grey[400],
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _email,
-        hint: "E-mail Address",
-        inputType: TextInputType.emailAddress,
-        validator: Validator.validateEmail,
-        customTextIcon:
-            Icon(Icons.mail, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
-    _passwordField = new CustomTextField2(
-        baseColor: Colors.grey[400],
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _password,
-        obscureText: true,
-        hint: "Password",
-        validator: Validator.validatePassword,
-        customTextIcon:
-            Icon(Icons.lock, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
-    _homeAddressField = new CustomTextField2(
-        baseColor: Colors.grey[400],
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _password,
-        obscureText: true,
-        hint: "Password",
-        validator: Validator.validatePassword,
-        customTextIcon:
-            Icon(Icons.home, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: onBackPress,
-      child: Scaffold(
-        body: Stack(
-          children: <Widget>[
-            Stack(
-              alignment: Alignment.topLeft,
-              children: <Widget>[
-                ListView(
-                  children: <Widget>[
-                    Container(
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height / 4,
-                      color: Color.fromRGBO(76, 86, 96, 1.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+    return StreamBuilder<DocumentSnapshot>(
+        stream: Firestore.instance
+            .collection('users')
+            .document(userService.userID)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            User user = User.fromDocument(snapshot.data);
+            if(!_isEditing) {
+              _firstname.text = user.firstName;
+              _lastname.text = user.lastName;
+              _number.text = user.phone;
+              _email.text = user.email;
+              _homeAddress.text = user.homeAddress;
+            }
+            return Scaffold(
+              body:Stack(
+                children: <Widget>[
+                  Stack(
+                    alignment: Alignment.topLeft,
+                    children: <Widget>[
+                      ListView(
                         children: <Widget>[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: <Widget>[
-                              _isEditing
-                                  ? new Container()
-                                  : getEditButton(context),
-                            ],
-                          ),
-                          FlatButton(
-                            splashColor: Color.fromRGBO(76, 86, 96, 1.0),
-                            onPressed: () {},
-                            child: CircleAvatar(
-                              maxRadius: MediaQuery.of(context).size.width / 6,
+                          Container(
+                            width: MediaQuery.of(context).size.width,
+                            height: MediaQuery.of(context).size.height / 3.6,
+                            color: Color.fromRGBO(76, 86, 96, 1.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: <Widget>[
+                                    _isEditing
+                                        ? new Container()
+                                        : getEditButton(context),
+                                  ],
+                                ),
+                                FlatButton(
+                                  splashColor: Color.fromRGBO(76, 86, 96, 1.0),
+                                  onPressed: () {},
+                                  child: CircleAvatar(
+                                    maxRadius:
+                                        MediaQuery.of(context).size.width / 6,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+                          Padding(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 6.0, horizontal: 10.0),
+                              child: buildCards(
+                                  context,
+                                  Icon(Icons.person,
+                                      color: Color.fromRGBO(76, 86, 96, 1.0)),
+                                  _firstname)),
+                          Padding(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 4.0, horizontal: 10.0),
+                              child: buildCards(
+                                  context,
+                                  Icon(Icons.person,
+                                      color: Color.fromRGBO(76, 86, 96, 1.0)),
+                                  _lastname)),
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 5.0, horizontal: 10.0),
+                            child: buildCards(
+                                context,
+                                Icon(Icons.email,
+                                    color: Color.fromRGBO(76, 86, 96, 1.0)),
+                                _email),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 4.0, horizontal: 10.0),
+                            child: buildCards(
+                                context,
+                                Icon(Icons.phone,
+                                    color: Color.fromRGBO(76, 86, 96, 1.0)),
+                                _number),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 6.0, horizontal: 10.0),
+                            child: buildCards(
+                                context,
+                                Icon(Icons.home,
+                                    color: Color.fromRGBO(76, 86, 96, 1.0)),
+                                _homeAddress),
+                          ),
+                          _isEditing
+                              ? getSaveAndCancel(context)
+                              : new Container(),
+                          _isEditing
+                              ? Padding(
+                                  padding: EdgeInsets.only(
+                                      top: 10.0,
+                                      bottom: 10.0,
+                                      right:
+                                          MediaQuery.of(context).size.width / 6,
+                                      left: MediaQuery.of(context).size.width /
+                                          6),
+                                  child: FlatButton(
+                                      onPressed: () {
+                                      },
+                                      shape: RoundedRectangleBorder(
+                                          side: BorderSide(color: Colors.grey),
+                                          borderRadius:
+                                              BorderRadius.circular(12.0)),
+                                      child: Text("Change Password",
+                                          softWrap: true,
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color:
+                                                Color.fromRGBO(76, 86, 96, 1.0),
+                                            fontSize: 24.0,
+                                            fontFamily: "OpenSans",
+                                            fontWeight: FontWeight.w300,
+                                          ))))
+                              : new Container(),
                         ],
                       ),
-                    ),
-                    Padding(
-                        padding: EdgeInsets.symmetric(
-                            vertical: 5.0, horizontal: 10.0),
-                        child: buildCards(
-                            context,
-                            Icon(Icons.person,
-                                color: Color.fromRGBO(76, 86, 96, 1.0)),
-                            _firstname)),
-                    Padding(
-                        padding: EdgeInsets.symmetric(
-                            vertical: 4.0, horizontal: 10.0),
-                        child: buildCards(
-                            context,
-                            Icon(Icons.person,
-                                color: Color.fromRGBO(76, 86, 96, 1.0)),
-                            _lastname)),
-                    Padding(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 4.0, horizontal: 10.0),
-                      child: buildCards(
-                          context,
-                          Icon(Icons.email,
-                              color: Color.fromRGBO(76, 86, 96, 1.0)),
-                          _email),
-                    ),
-                    Padding(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 4.0, horizontal: 10.0),
-                      child: buildCards(
-                          context,
-                          Icon(Icons.phone,
-                              color: Color.fromRGBO(76, 86, 96, 1.0)),
-                          _number),
-                    ),
-                    // Padding(
-                    //     padding: EdgeInsets.symmetric(
-                    //         vertical: 4.0, horizontal: 10.0),
-                    //     child: buildCards(
-                    //         context,
-                    //         Icon(Icons.lock,
-                    //             color: Color.fromRGBO(76, 86, 96, 1.0)),
-                    //         _password)),
-                    Padding(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
-                      child: buildCards(
-                          context,
-                          Icon(Icons.home,
-                              color: Color.fromRGBO(76, 86, 96, 1.0)),
-                          _homeAddress),
-                    ),
-                    _isEditing ? getSaveAndCancel(context) : new Container(),
-                    _isEditing
-                        ? Padding(
-                            padding: EdgeInsets.only(
-                                top: 10.0,
-                                bottom: 10.0,
-                                right: MediaQuery.of(context).size.width / 6,
-                                left: MediaQuery.of(context).size.width / 6),
-                            child: FlatButton(
-                                onPressed: () {},
-                                shape: RoundedRectangleBorder(
-                                    side: BorderSide(color: Colors.grey),
-                                    borderRadius: BorderRadius.circular(12.0)),
-                                child: Text("Change Password",
-                                    softWrap: true,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: Color.fromRGBO(76, 86, 96, 1.0),
-                                      fontSize: 24.0,
-                                      fontFamily: "OpenSans",
-                                      fontWeight: FontWeight.w300,
-                                    ))))
-                        : new Container(),
-                  ],
-                ),
-                SafeArea(
-                  child: IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: onBackPress,
+                      SafeArea(
+                        child: IconButton(
+                          icon: Icon(Icons.arrow_back, color: Colors.white),
+                          onPressed: onBackPress,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-            Offstage(
-              offstage: !_blackVisible,
-              child: GestureDetector(
-                onTap: () {},
-                child: AnimatedOpacity(
-                  opacity: _blackVisible ? 1.0 : 0.0,
-                  duration: Duration(milliseconds: 400),
-                  curve: Curves.ease,
-                  child: Container(
-                    height: MediaQuery.of(context).size.height,
-                    color: Colors.black54,
+                  Offstage(
+                    offstage: !_blackVisible,
+                    child: GestureDetector(
+                      onTap: () {},
+                      child: AnimatedOpacity(
+                        opacity: _blackVisible ? 1.0 : 0.0,
+                        duration: Duration(milliseconds: 400),
+                        curve: Curves.ease,
+                        child: Container(
+                          height: MediaQuery.of(context).size.height,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ),
-          ],
-        ),
-      ),
-    );
+            );
+          } else {
+            return Container(
+              color: Colors.white,
+            );
+          }
+        }
+      );
   }
 
   void _changeBlackVisible() {
@@ -292,16 +222,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 10.0),
           child: RaisedButton(
-            onPressed: () {
-              // _editInfo(
-              //   firstname: _firstname.text,
-              //   lastname: _lastname.text,
-              //   email: _email.text,
-              //   phone: _number.text,
-              //   password: _password.text,
-              //   home: _homeAddress.text,
-              // );
-              _editInfo(_homeAddress.text);
+            onPressed: () async {
+               await _editInfo(
+                  firstname: _firstname.text,
+                  lastname: _lastname.text,
+                  email: _email.text,
+                  phone: _number.text,
+                  home: _homeAddress.text);
+              // bool isValid = await Validator.validateStreetAddress(_homeAddress.text);
+              // print(isValid);
               setState(() {
                 //reset all textEditing controllers text information.
                 //_updateTextEditingControllers();
@@ -384,27 +313,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /*void _editInfo(
+  Future<void> _editInfo(
       {String firstname,
       String lastname,
       String phone,
       String email,
-      String password,
       String home,
       BuildContext context}) async {
+      _changeBlackVisible();
     if (Validator.validateName(firstname) &&
-        Validator.validateName(lastname) &&
-        Validator.validateEmail(email) &&
-        Validator.validateNumber(number) &&
-        Validator.validatePassword(password) &&
-        await Validator.validateStreetAddress(home)) {
+            Validator.validateName(lastname) &&
+            Validator.validateEmail(email) &&
+            Validator.validateNumber(phone)
+        ) {
       try {
         SystemChannels.textInput.invokeMethod('TextInput.hide');
-        _changeBlackVisible();
         //Updating information from user
-        newUser = {
-          'name' : name
-        }
+        await Firestore.instance
+            .collection('users')
+            .document(userService.userID)
+            .updateData({
+          'firstName': firstname,
+          'lastName': lastname,
+          'phone': phone,
+          'email': email,
+          'homeAddress': home
+        }).then((blah) {
+          _changeBlackVisible();
+        });
       } catch (e) {
         print("Error when editing profile information: $e");
         String exception = auth.getExceptionText(e);
@@ -413,30 +349,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           content: exception,
           onPressed: _changeBlackVisible,
         );
+        _changeBlackVisible();
+        
       }
     }
-  }*/
-
-  Future<void> _editInfo(String home) async {
-    if (await Validator.validateStreetAddress(home)) {
-      print("111111111111111111111111111111111");
-    } else {
-      print("nah");
-    }
   }
-
-  //Updated user value.
-  // void _buildUser(String firstname, String lastname, String number, String email, String home) {
-  //   user.firstname = firstname;
-  //   user.lastname = lastname;
-  //   user.email = email;
-  //   user.number = number;
-  //   user.home = home;
-  // }
-
-  // void _updateTextEditingControllers() {
-  //
-  // }
 
   void _showErrorAlert({String title, String content, VoidCallback onPressed}) {
     showDialog(
@@ -452,23 +369,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /*void _initializeControllers() {
-    _firstname = new TextEditingController(text: user.firstName);
-    _lastname = new TextEditingController(text: user.lastName);
-    try {
-      _number = new TextEditingController(text: user.phone);
-    } catch (e) {
-      _number = new TextEditingController(text: "");
-    }
-    try {
-      _email = new TextEditingController(text: user.email);
-    } catch (e) {
-      _email = new TextEditingController(text: "");
-    }
-    try {
-      _homeAddress = new TextEditingController(text: user.homeAddress);
-    } catch (e) {
-      _homeAddress = new TextEditingController(text: "");
-    }
-  }*/
 }
