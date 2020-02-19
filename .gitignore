@@ -55,6 +55,10 @@ linked_*.ds
 unlinked.ds
 unlinked_spec.ds
 
+# Cloud Functions
+**/functions/node_modules
+**/functions/package-lock.json
+
 # Android related
 **/android/**/gradle-wrapper.jar
 **/android/.gradle
