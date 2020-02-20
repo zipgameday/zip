@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:zip/CustomIcons/custom_icons_icons.dart';
 import 'package:zip/business/user.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:zip/models/user.dart';
 import 'package:zip/ui/widgets/custom_alert_dialog.dart';
 
 
@@ -190,15 +192,28 @@ class _PromosScreenState extends State<PromosScreen> {
 
   //Call to database to check credits.
   Widget buildProgressBar(BuildContext context) {
-    return LinearPercentIndicator(
-      width: MediaQuery.of(context).size.width / 1.2,
-      animation: false,
-      lineHeight: 20.0,
-      percent: _credits,
-      progressColor: Colors.grey,
-      backgroundColor: Colors.white,
-      center: Text((_credits * 100).round().toInt().toString() + '/' + '100'),
-    );
+    return StreamBuilder<DocumentSnapshot>(
+        stream: Firestore.instance
+            .collection('users')
+            .document(userService.userID)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            User user = User.fromDocument(snapshot.data);
+            return LinearPercentIndicator(
+              width: MediaQuery.of(context).size.width / 1.2,
+              animation: false,
+              lineHeight: 20.0,
+              percent: (user.credits / 200),
+              progressColor: Colors.grey,
+              backgroundColor: Colors.white,
+              center: Text(user.credits.toInt().toString() + '/' + '200'),
+            );
+          } else {
+            return DrawerHeader(child: Column());
+          }
+        }
+      );
   }
 
   void _showAlert({String title, String content, VoidCallback onPressed}) {
