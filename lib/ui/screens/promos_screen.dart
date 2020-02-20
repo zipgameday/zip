@@ -1,6 +1,11 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:zip/CustomIcons/custom_icons_icons.dart';
+import 'package:zip/business/user.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:zip/ui/widgets/custom_alert_dialog.dart';
+
 
 class PromosScreen extends StatefulWidget {
   @override
@@ -10,21 +15,47 @@ class PromosScreen extends StatefulWidget {
 class _PromosScreenState extends State<PromosScreen> {
   VoidCallback onBackPress;
   double _credits = 0.0;
+  UserService userService = UserService();
+  bool _isInAsyncCall = false;
+
+  final HttpsCallable applyPromoFunction = CloudFunctions.instance.getHttpsCallable(
+    functionName: 'applyPromoCode',
+  );
+
+  final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
+    functionName: 'repeat',
+  );
 
   @override
   void initState() {
     super.initState();
-    //Tested back button, not working.
-    //Same error as Profile_Screen.
-    //element.contains(element) != true
-    // onBackPress = () {
-    //     Navigator.of(context).pop();
-    //   };
   }
 
-  void _increment() {
+  void _applyCode() async {
     setState(() {
-      _credits += 0.1;
+      _isInAsyncCall = true;
+    });
+    try {
+      HttpsCallableResult result = await applyPromoFunction.call(<String, dynamic>{'uid': userService.userID, 'promo_code': _promoController.text});
+      if(result.data['result'] == true) {
+        _showAlert(
+          title: "Success!",
+          content: result.data['message'],
+          onPressed: () {},
+        );
+      } else {
+        _showAlert(
+          title: "Error",
+          content: result.data['message'],
+          onPressed: () {},
+        );
+      }
+    } catch (e) {
+      
+      print('An error has occured: $e');
+    }
+    setState(() {
+      _isInAsyncCall = false;
     });
   }
 
@@ -32,7 +63,11 @@ class _PromosScreenState extends State<PromosScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: onBackPress,
-      child: Scaffold(
+      child: ModalProgressHUD(
+        inAsyncCall: _isInAsyncCall,
+        progressIndicator: CircularProgressIndicator(),
+        opacity: 0.5,
+        child: Scaffold(
         backgroundColor: Color.fromRGBO(76, 86, 96, 1.0),
         body: ListView(
           children: <Widget>[
@@ -70,7 +105,7 @@ class _PromosScreenState extends State<PromosScreen> {
                   right: MediaQuery.of(context).size.width / 4,
                   left: MediaQuery.of(context).size.width / 4),
               child: FlatButton(
-                onPressed: _increment,
+                onPressed: _applyCode,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.0)),
                 color: Colors.white,
@@ -100,6 +135,7 @@ class _PromosScreenState extends State<PromosScreen> {
           ],
         ),
       ),
+    )
     );
   }
 
@@ -117,8 +153,9 @@ class _PromosScreenState extends State<PromosScreen> {
   final Icon _fireIcon =
       Icon(CustomIcons.fire, size: 110.0, color: Colors.white);
 
-  final TextEditingController _promoController = new TextEditingController();
+  static final TextEditingController _promoController = new TextEditingController();
   final TextField _enterPromo = TextField(
+    controller: _promoController,
     textAlign: TextAlign.center,
     style: TextStyle(
       color: Colors.white,
@@ -161,6 +198,20 @@ class _PromosScreenState extends State<PromosScreen> {
       progressColor: Colors.grey,
       backgroundColor: Colors.white,
       center: Text((_credits * 100).round().toInt().toString() + '/' + '100'),
+    );
+  }
+
+  void _showAlert({String title, String content, VoidCallback onPressed}) {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return CustomAlertDialog(
+          content: content,
+          title: title,
+          onPressed: onPressed,
+        );
+      },
     );
   }
 }

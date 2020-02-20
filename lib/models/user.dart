@@ -8,7 +8,7 @@ class User {
   final String phone;
   final String email;
   final String profilePictureURL;
-  final double credits;
+  final num credits;
   final String homeAddress;
   final DateTime lastActivity;
 
