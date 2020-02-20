@@ -31,6 +31,9 @@ class _PromosScreenState extends State<PromosScreen> {
   @override
   void initState() {
     super.initState();
+    onBackPress = () {
+      Navigator.of(context).pop();
+    };
   }
 
   void _applyCode() async {
@@ -63,9 +66,7 @@ class _PromosScreenState extends State<PromosScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: onBackPress,
-      child: ModalProgressHUD(
+    return ModalProgressHUD(
         inAsyncCall: _isInAsyncCall,
         progressIndicator: CircularProgressIndicator(),
         opacity: 0.5,
@@ -73,6 +74,15 @@ class _PromosScreenState extends State<PromosScreen> {
         backgroundColor: Color.fromRGBO(76, 86, 96, 1.0),
         body: ListView(
           children: <Widget>[
+            Align(
+              alignment: Alignment.topLeft,
+              child: SafeArea(
+                child: IconButton(
+                  icon: Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: onBackPress,
+                ),
+              ),
+            ),
             Center(
               child: Padding(
                   padding: EdgeInsets.only(
@@ -137,7 +147,6 @@ class _PromosScreenState extends State<PromosScreen> {
           ],
         ),
       ),
-    )
     );
   }
 
