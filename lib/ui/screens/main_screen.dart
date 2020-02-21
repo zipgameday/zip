@@ -1,6 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:zip/business/auth.dart';
+import 'package:zip/business/user.dart';
 import 'package:zip/models/user.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -14,7 +15,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-
+  final UserService userService = UserService();
   @override
   void initState() {
     super.initState();
@@ -44,19 +45,27 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget buildDrawer(BuildContext context) {
-    var user = Provider.of<User>(context);
-
     _buildHeader() {
-      if (user == null) {
-        return DrawerHeader(child: Column());
-      } else {
-        return DrawerHeader(
-          child: Column(children: [
-            Text('Name: ${user.firstName} ${user.lastName}'),
-            Text('Email: ${user.email}'),
-          ]),
-        );
-      }
+      return StreamBuilder<DocumentSnapshot>(
+        stream: Firestore.instance
+            .collection('users')
+            .document(userService.userID)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            User user = User.fromDocument(snapshot.data);
+            return DrawerHeader(
+              child: Column(
+                children: [
+                  Text('Name: ${user.firstName} ${user.lastName}'),
+                  Text('Email: ${user.email}'),
+                  ]),
+            );
+          } else {
+            return DrawerHeader(child: Column());
+          }
+        }
+      );
     }
 
     return Drawer(

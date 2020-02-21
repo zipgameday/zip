@@ -55,6 +55,10 @@ linked_*.ds
 unlinked.ds
 unlinked_spec.ds
 
+# Cloud Functions
+**/functions/node_modules
+**/functions/package-lock.json
+
 # Android related
 **/android/**/gradle-wrapper.jar
 **/android/.gradle
@@ -93,7 +97,7 @@ unlinked_spec.ds
 **/ios/Flutter/flutter_export_environment.sh
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
-ios/Podfile.lock
+**/ios/Podfile.lock
 
 # macOS
 **/macos/Flutter/GeneratedPluginRegistrant.swift
