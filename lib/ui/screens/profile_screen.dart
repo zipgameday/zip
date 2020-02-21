@@ -45,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             User user = User.fromDocument(snapshot.data);
-            if(!_isEditing) {
+            if (!_isEditing) {
               _firstname.text = user.firstName;
               _lastname.text = user.lastName;
               _number.text = user.phone;
@@ -53,7 +53,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _homeAddress.text = user.homeAddress;
             }
             return Scaffold(
-              body:Stack(
+              body: Stack(
                 children: <Widget>[
                   Stack(
                     alignment: Alignment.topLeft,
@@ -142,7 +142,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       left: MediaQuery.of(context).size.width /
                                           6),
                                   child: FlatButton(
-                                      onPressed: () {
+                                      onPressed: () async {
+                                        try{
+                                          await auth.sendResetPassword(user.email);
+                                          _showPasswordChangePopup(
+                                          title: "Change Password",
+                                          content: "We have sent an password reset email to ${user.email}",
+                                          onPressed: _changeBlackVisible,
+                                        );
+                                        }catch(e){
+                                          _showErrorAlert(
+                                            title: "Change Password Error",
+                                            content: "An error occurred while sending a reset password email. "
+                                                    + "Error: ${e.toString()}",
+                                            onPressed: _changeBlackVisible,
+                                          );
+                                        }
+                                        _changeBlackVisible();
+                                        setState(() {
+                                          _isEditing = false;
+                                        });
+
                                       },
                                       shape: RoundedRectangleBorder(
                                           side: BorderSide(color: Colors.grey),
@@ -192,8 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: Colors.white,
             );
           }
-        }
-      );
+        });
   }
 
   void _changeBlackVisible() {
@@ -223,7 +242,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: EdgeInsets.symmetric(horizontal: 10.0),
           child: RaisedButton(
             onPressed: () async {
-               await _editInfo(
+              await _editInfo(
                   firstname: _firstname.text,
                   lastname: _lastname.text,
                   email: _email.text,
@@ -320,12 +339,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       String email,
       String home,
       BuildContext context}) async {
-      _changeBlackVisible();
+    _changeBlackVisible();
     if (Validator.validateName(firstname) &&
-            Validator.validateName(lastname) &&
-            Validator.validateEmail(email) &&
-            Validator.validateNumber(phone)
-        ) {
+        Validator.validateName(lastname) &&
+        Validator.validateEmail(email) &&
+        Validator.validateNumber(phone)) {
       try {
         SystemChannels.textInput.invokeMethod('TextInput.hide');
         //Updating information from user
@@ -350,12 +368,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onPressed: _changeBlackVisible,
         );
         _changeBlackVisible();
-        
       }
     }
   }
 
   void _showErrorAlert({String title, String content, VoidCallback onPressed}) {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return CustomAlertDialog(
+          content: content,
+          title: title,
+          onPressed: onPressed,
+        );
+      },
+    );
+  }
+
+  void _showPasswordChangePopup({String title, String content, VoidCallback onPressed}) {
     showDialog(
       barrierDismissible: false,
       context: context,

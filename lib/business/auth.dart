@@ -128,6 +128,10 @@ class AuthService {
     });
   }
 
+  Future<void> sendResetPassword(String email) async{
+    return _auth.sendPasswordResetEmail(email: email);
+  }
+
   String getExceptionText(Exception e) {
     if (e is PlatformException) {
       switch (e.message) {
