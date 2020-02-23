@@ -1,7 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:zip/CustomIcons/custom_icons_icons.dart';
+import 'package:zip/business/user.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:zip/models/user.dart';
 import 'package:zip/ui/widgets/custom_alert_dialog.dart';
+
 
 class PromosScreen extends StatefulWidget {
   @override
@@ -10,29 +16,137 @@ class PromosScreen extends StatefulWidget {
 
 class _PromosScreenState extends State<PromosScreen> {
   VoidCallback onBackPress;
-  num _credits = 0;
+  double _credits = 0.0;
+  UserService userService = UserService();
+  bool _isInAsyncCall = false;
+
+  final HttpsCallable applyPromoFunction = CloudFunctions.instance.getHttpsCallable(
+    functionName: 'applyPromoCode',
+  );
+
+  final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
+    functionName: 'repeat',
+  );
+
   @override
   void initState() {
     super.initState();
-
     onBackPress = () {
       Navigator.of(context).pop();
     };
   }
 
-  void _increment() {
+  void _applyCode() async {
     setState(() {
-      _credits += 10;
+      _isInAsyncCall = true;
+    });
+    try {
+      HttpsCallableResult result = await applyPromoFunction.call(<String, dynamic>{'uid': userService.userID, 'promo_code': _promoController.text});
+      if(result.data['result'] == true) {
+        _showAlert(
+          title: "Success!",
+          content: result.data['message'],
+          onPressed: () {},
+        );
+      } else {
+        _showAlert(
+          title: "Error",
+          content: result.data['message'],
+          onPressed: () {},
+        );
+      }
+    } catch (e) {
+      
+      print('An error has occured: $e');
+    }
+    setState(() {
+      _isInAsyncCall = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color.fromRGBO(76, 86, 96, 1.0),
-      body: _credits < 100
-          ? buildNonMaxCreditWidget(context)
-          : buildMaxCreditsWidget(context),
+    return ModalProgressHUD(
+        inAsyncCall: _isInAsyncCall,
+        progressIndicator: CircularProgressIndicator(),
+        opacity: 0.5,
+        child: Scaffold(
+        backgroundColor: Color.fromRGBO(76, 86, 96, 1.0),
+        body: ListView(
+          children: <Widget>[
+            Align(
+              alignment: Alignment.topLeft,
+              child: SafeArea(
+                child: IconButton(
+                  icon: Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: onBackPress,
+                ),
+              ),
+            ),
+            Center(
+              child: Padding(
+                  padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).size.height / 10),
+                  child: _promos),
+            ),
+            Padding(
+              padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).size.height / 6,
+                  right: MediaQuery.of(context).size.width / 4,
+                  left: MediaQuery.of(context).size.width / 4),
+              child: _fireIcon,
+            ),
+            Padding(
+              padding: EdgeInsets.only(
+                  top: 45.0,
+                  right: MediaQuery.of(context).size.width / 6,
+                  left: MediaQuery.of(context).size.width / 6),
+              child: Container(
+                decoration: ShapeDecoration(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      side: BorderSide(color: Colors.white)),
+                ),
+                height: MediaQuery.of(context).size.height / 17,
+                child: _enterPromo,
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(
+                  top: 10.0,
+                  right: MediaQuery.of(context).size.width / 4,
+                  left: MediaQuery.of(context).size.width / 4),
+              child: FlatButton(
+                onPressed: _applyCode,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0)),
+                color: Colors.white,
+                child: Text(
+                  "Apply",
+                  softWrap: true,
+                  style: TextStyle(
+                    color: Color.fromRGBO(76, 86, 96, 1.0),
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w400,
+                    fontFamily: "OpenSans",
+                  ),
+                ),
+              ),
+            ),
+            Center(
+              child: Padding(
+                  padding: EdgeInsets.only(top: 100.0), child: _creditText),
+            ),
+            //progress bar attempt
+            Padding(
+                padding: EdgeInsets.only(
+                    top: 10.0,
+                    right: MediaQuery.of(context).size.width / 12,
+                    left: MediaQuery.of(context).size.width / 12),
+                child: buildProgressBar(context)),
+          ],
+        ),
+      ),
     );
   }
 
@@ -50,10 +164,10 @@ class _PromosScreenState extends State<PromosScreen> {
   final Icon _fireIcon =
       Icon(CustomIcons.fire, size: 110.0, color: Colors.white);
 
-  static TextEditingController _promoController = new TextEditingController();
-  final TextField _enterPromo = new TextField(
-    textAlign: TextAlign.center,
+  static final TextEditingController _promoController = new TextEditingController();
+  final TextField _enterPromo = TextField(
     controller: _promoController,
+    textAlign: TextAlign.center,
     style: TextStyle(
       color: Colors.white,
       fontSize: 20.0,
@@ -88,173 +202,31 @@ class _PromosScreenState extends State<PromosScreen> {
   //Call to database to check credits.
 
   Widget buildProgressBar(BuildContext context) {
-    try {
-      return LinearPercentIndicator(
-        width: MediaQuery.of(context).size.width / 1.2,
-        animation: false,
-        lineHeight: 20.0,
-        percent: _credits / 100,
-        progressColor: Colors.grey,
-        backgroundColor: Colors.white,
-        center: Text((_credits).toString() + '/' + '100'),
+    return StreamBuilder<DocumentSnapshot>(
+        stream: Firestore.instance
+            .collection('users')
+            .document(userService.userID)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            User user = User.fromDocument(snapshot.data);
+            return LinearPercentIndicator(
+              width: MediaQuery.of(context).size.width / 1.2,
+              animation: false,
+              lineHeight: 20.0,
+              percent: (user.credits / 200),
+              progressColor: Colors.grey,
+              backgroundColor: Colors.white,
+              center: Text(user.credits.toInt().toString() + '/' + '200'),
+            );
+          } else {
+            return DrawerHeader(child: Column());
+          }
+        }
       );
-    } catch (e) {
-      return LinearPercentIndicator(
-        width: MediaQuery.of(context).size.width / 1.2,
-        animation: false,
-        lineHeight: 20.0,
-        percent: 1.0,
-        progressColor: Colors.grey,
-        backgroundColor: Colors.white,
-        center: Text("100/100"),
-      );
-    }
   }
 
-  Widget buildNonMaxCreditWidget(BuildContext context) {
-    return ListView(
-      children: <Widget>[
-        Align(
-          alignment: Alignment.topLeft,
-          child: SafeArea(
-              child: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: onBackPress,
-          )),
-        ),
-        Center(
-          child: Padding(padding: EdgeInsets.only(top: 10.0), child: _promos),
-        ),
-        Padding(
-          padding: EdgeInsets.only(
-              top: MediaQuery.of(context).size.height / 6,
-              right: MediaQuery.of(context).size.width / 4,
-              left: MediaQuery.of(context).size.width / 4),
-          child: _fireIcon,
-        ),
-        Padding(
-          padding: EdgeInsets.only(
-              top: 45.0,
-              right: MediaQuery.of(context).size.width / 6,
-              left: MediaQuery.of(context).size.width / 6),
-          child: Container(
-            decoration: ShapeDecoration(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  side: BorderSide(color: Colors.white)),
-            ),
-            height: MediaQuery.of(context).size.height / 17,
-            child: _enterPromo,
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.only(
-              top: 10.0,
-              right: MediaQuery.of(context).size.width / 4,
-              left: MediaQuery.of(context).size.width / 4),
-          child: FlatButton(
-            onPressed: () {
-              //call cloud function to validate/get credit amount.
-              if (_credits < 100) {
-                _increment();
-              }
-            },
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.0)),
-            color: Colors.white,
-            child: Text(
-              "Apply",
-              softWrap: true,
-              style: TextStyle(
-                color: Color.fromRGBO(76, 86, 96, 1.0),
-                fontSize: 18.0,
-                fontWeight: FontWeight.w400,
-                fontFamily: "OpenSans",
-              ),
-            ),
-          ),
-        ),
-        Center(
-          child:
-              Padding(padding: EdgeInsets.only(top: 100.0), child: _creditText),
-        ),
-        //progress bar attempt
-        Padding(
-            padding: EdgeInsets.only(
-                top: 10.0,
-                right: MediaQuery.of(context).size.width / 12,
-                left: MediaQuery.of(context).size.width / 12),
-            child: buildProgressBar(context)),
-      ],
-    );
-  }
-
-  Widget buildMaxCreditsWidget(BuildContext context) {
-    return ListView(
-      children: <Widget>[
-        Align(
-          alignment: Alignment.topLeft,
-          child: SafeArea(
-              child: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: onBackPress,
-          )),
-        ),
-        Center(
-          child: Padding(
-              padding:
-                  EdgeInsets.only(top: MediaQuery.of(context).size.height / 10),
-              child: _promos),
-        ),
-        Padding(
-          padding: EdgeInsets.only(
-              top: MediaQuery.of(context).size.height / 6,
-              right: MediaQuery.of(context).size.width / 4,
-              left: MediaQuery.of(context).size.width / 4),
-          child: _fireIcon,
-        ),
-        Padding(
-            padding: EdgeInsets.only(top: 55.0, left: 15.0, right: 15.0),
-            child: Text(
-              "Congratualtions, you have earned a free ride. Press \'Use Credits'\ to redeem!",
-              overflow: TextOverflow.visible,
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w400,
-                fontSize: 24.0,
-                fontFamily: "OpenSans",
-              ),
-            )),
-        Padding(
-            padding: EdgeInsets.only(
-                top: 25.0,
-                bottom: 20.0,
-                left: MediaQuery.of(context).size.width / 4,
-                right: MediaQuery.of(context).size.width / 4),
-            child: buildUseCreditsButton(context)),
-      ],
-    );
-  }
-
-  Widget buildUseCreditsButton(BuildContext context) {
-    return FlatButton(
-      onPressed: () {},
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      color: Colors.white,
-      child: Text(
-        "Use Credits",
-        softWrap: true,
-        style: TextStyle(
-          color: Color.fromRGBO(76, 86, 96, 1.0),
-          fontSize: 18.0,
-          fontWeight: FontWeight.w400,
-          fontFamily: "OpenSans",
-        ),
-      ),
-    );
-  }
-
-  void _showErrorAlert({String title, String content, VoidCallback onPressed}) {
+  void _showAlert({String title, String content, VoidCallback onPressed}) {
     showDialog(
       barrierDismissible: false,
       context: context,

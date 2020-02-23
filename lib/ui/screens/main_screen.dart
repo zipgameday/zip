@@ -130,7 +130,7 @@ class _MainScreenState extends State<MainScreen> {
             title: Text('Edit Profile'),
             onTap: () {
               Navigator.of(context).pop();
-              Navigator.pushNamed(context,'/profile');
+              Navigator.pushNamed(context, '/profile');
             },
           ),
           ListTile(
@@ -189,12 +189,18 @@ class TheMap extends StatefulWidget {
 class MapScreen extends State<TheMap> {
   static LatLng _initialPosition;
   final Set<Marker> _markers = {};
+  BitmapDescriptor pinLocationIcon;
+  final Set<LatLng> driverPositions = {
+    LatLng(32.62532, -85.46849),
+    LatLng(32.62932, -85.46249)
+  };
   static LatLng _lastMapPosition = _initialPosition;
   Completer<GoogleMapController> _controller = Completer();
 
   @override
   void initState() {
     super.initState();
+    setCustomMapPin();
     _getUserLocation();
   }
 
@@ -206,7 +212,7 @@ class MapScreen extends State<TheMap> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      body: _initialPosition == null
+      body: _initialPosition == null || pinLocationIcon == null
           ? Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
@@ -218,12 +224,19 @@ class MapScreen extends State<TheMap> {
               onMapCreated: (GoogleMapController controller) {
                 _controller.complete(controller);
               },
+              markers: _markers,
               myLocationButtonEnabled: true,
               myLocationEnabled: true,
               mapToolbarEnabled: true,
             ),
     );
   }
+
+  void setCustomMapPin() async {
+      pinLocationIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(devicePixelRatio: 4.5),
+      'assets/golf_cart.png');
+   }
 
   void _getUserLocation() async {
     Position position = await Geolocator()
@@ -233,5 +246,11 @@ class MapScreen extends State<TheMap> {
     setState(() {
       _initialPosition = LatLng(position.latitude, position.longitude);
     });
+    driverPositions.forEach((dr) => _markers.add(Marker(
+          markerId: MarkerId('testing'),
+          position: dr,
+          icon: pinLocationIcon,
+          
+        )));
   }
 }
