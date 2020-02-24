@@ -29,12 +29,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       new TextEditingController();
   final TextEditingController _homeAddress =
       new TextEditingController();
-  CustomTextField2 _firstnameField;
-  CustomTextField2 _lastnameField;
-  CustomTextField2 _phoneField;
-  CustomTextField2 _emailField;
-  CustomTextField2 _passwordField;
-  CustomTextField2 _homeAddressField;
+  
   bool _blackVisible = false;
   bool _isEditing = false;
   User user;
@@ -55,70 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _email.text = user.email;
     _homeAddress.text = user.homeAddress;
 
-    _firstnameField = new CustomTextField2(
-        baseColor: Colors.grey,
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _firstname,
-        hint: "First Name",
-        validator: Validator.validateName,
-        customTextIcon:
-            Icon(Icons.person, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
-    _lastnameField = new CustomTextField2(
-        baseColor: Colors.grey,
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _lastname,
-        hint: "Last Name",
-        validator: Validator.validateName,
-        customTextIcon:
-            Icon(Icons.person, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
-    _phoneField = new CustomTextField2(
-        baseColor: Colors.grey[400],
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _number,
-        hint: "Phone Number",
-        validator: Validator.validateNumber,
-        inputType: TextInputType.number,
-        customTextIcon:
-            Icon(Icons.phone, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
-    _emailField = new CustomTextField2(
-        baseColor: Colors.grey[400],
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _email,
-        hint: "E-mail Address",
-        inputType: TextInputType.emailAddress,
-        validator: Validator.validateEmail,
-        customTextIcon:
-            Icon(Icons.mail, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
-    _passwordField = new CustomTextField2(
-        baseColor: Colors.grey[400],
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _password,
-        obscureText: true,
-        hint: "Password",
-        validator: Validator.validatePassword,
-        customTextIcon:
-            Icon(Icons.lock, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
-    _homeAddressField = new CustomTextField2(
-        baseColor: Colors.grey[400],
-        borderColor: Colors.black,
-        errorColor: Colors.red,
-        controller: _password,
-        obscureText: true,
-        hint: "Password",
-        validator: Validator.validatePassword,
-        customTextIcon:
-            Icon(Icons.home, color: Color.fromRGBO(76, 86, 96, 1.0)),
-        isEditable: _isEditing);
+
   }
 
   @override
