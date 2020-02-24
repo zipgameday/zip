@@ -21,7 +21,6 @@ class LocationService {
 
   Future<bool> setupService({bool reinit = false}) async {
     try {
-      geolocationStatus  = await Geolocator().checkGeolocationPermissionStatus();
       if (positionSub != null) positionSub.cancel();
       position = await Geolocator().getLastKnownPosition(desiredAccuracy: LocationAccuracy.high);
       positionStream = geolocator.getPositionStream(locationOptions).asBroadcastStream();
