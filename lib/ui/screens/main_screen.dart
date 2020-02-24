@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:zip/business/auth.dart';
+import 'package:zip/business/drivers.dart';
+import 'package:zip/business/location.dart';
 import 'package:zip/business/user.dart';
 import 'package:zip/models/user.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -16,6 +18,9 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final UserService userService = UserService();
+  final LocationService locationService = LocationService();
+  final DriverService driverService = DriverService();
+
   @override
   void initState() {
     super.initState();

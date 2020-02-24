@@ -1,12 +1,10 @@
 import 'dart:async';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:zip/models/user.dart';
 
 
 class UserService {
   static final UserService _instance = UserService._internal();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final Firestore _db = Firestore.instance;
   String userID = '';
   Stream<User> userStream;
