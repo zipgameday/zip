@@ -1,4 +1,9 @@
+import 'dart:io';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 import 'package:flutter/material.dart';
+import 'package:zip/firebase_notifications/firebase_notifications.dart';
 import 'package:zip/ui/screens/profile_screen.dart';
 import 'package:zip/ui/screens/root_screen.dart';
 import 'package:zip/ui/screens/sign_in_screen.dart';
@@ -16,11 +21,10 @@ void main() {
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
   MyApp({this.prefs});
-  // PermissionStatus permission;
-  // Future<PermissionStatus> _getPermission() async => permission = await LocationPermissions().requestPermissions();
 
   @override
   Widget build(BuildContext context) {
+    FirebaseNotifications().setUpFirebase(context); 
     return MaterialApp(
         title: 'Zip Gameday',
         debugShowCheckedModeBanner: false,
