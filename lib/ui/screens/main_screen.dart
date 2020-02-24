@@ -8,6 +8,7 @@ import 'package:zip/models/user.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
+import 'package:zip/ui/screens/settings_screen.dart';
 import 'package:zip/ui/screens/promos_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -148,6 +149,12 @@ class _MainScreenState extends State<MainScreen> {
               _scaffoldKey.currentState.openEndDrawer();
             },
           ),
+          ListTile(
+              title: Text('Settings'),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> SettingsScreen()));
+              },
+            ),
         ],
       ),
     );
