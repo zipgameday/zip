@@ -200,6 +200,7 @@ class _PromosScreenState extends State<PromosScreen> {
   );
 
   //Call to database to check credits.
+
   Widget buildProgressBar(BuildContext context) {
     return StreamBuilder<DocumentSnapshot>(
         stream: Firestore.instance
@@ -238,4 +239,5 @@ class _PromosScreenState extends State<PromosScreen> {
       },
     );
   }
+  
 }

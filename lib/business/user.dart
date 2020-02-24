@@ -10,6 +10,7 @@ class UserService {
   final Firestore _db = Firestore.instance;
   String userID = '';
   Stream<User> userStream;
+  StreamSubscription userSub;
   User user;
 
   factory UserService() {
@@ -21,7 +22,8 @@ class UserService {
   }
 
   void setupService(String id) {
-    if(userID == '') {
+    if(userID != id) {
+      if(userSub != null) userSub.cancel();
       userID = id;
       userStream = _db
           .collection("users")
@@ -30,7 +32,7 @@ class UserService {
           .map((DocumentSnapshot snapshot) {
         return User.fromDocument(snapshot);
       });
-      userStream.listen((user) {
+      userSub = userStream.listen((user) {
         this.user = user;
       });
       print("UserService setup with user: $userID");

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:zip/business/auth.dart';
@@ -17,6 +19,32 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final UserService userService = UserService();
+  static bool _isSwitched = true;
+  static Text driverText = Text("Driver",
+      softWrap: true,
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: 16.0,
+        fontFamily: "OpenSans",
+        fontWeight: FontWeight.w600,
+      ));
+  static Text customerText = Text("Customer",
+      softWrap: true,
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: 16.0,
+        fontFamily: "OpenSans",
+        fontWeight: FontWeight.w600,
+      ));
+
+  static Text viewProfileText = Text("View Profile",
+      softWrap: true,
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: 16.0,
+        fontFamily: "OpenSans",
+        fontWeight: FontWeight.w600,
+      ));
   @override
   void initState() {
     super.initState();
@@ -48,25 +76,50 @@ class _MainScreenState extends State<MainScreen> {
   Widget buildDrawer(BuildContext context) {
     _buildHeader() {
       return StreamBuilder<DocumentSnapshot>(
-        stream: Firestore.instance
-            .collection('users')
-            .document(userService.userID)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            User user = User.fromDocument(snapshot.data);
-            return DrawerHeader(
-              child: Column(
-                children: [
-                  Text('Name: ${user.firstName} ${user.lastName}'),
-                  Text('Email: ${user.email}'),
-                  ]),
-            );
-          } else {
-            return DrawerHeader(child: Column());
-          }
-        }
-      );
+          stream: Firestore.instance
+              .collection('users')
+              .document(userService.userID)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              User user = User.fromDocument(snapshot.data);
+              return Container(
+                  height: MediaQuery.of(context).size.height / 2.8,
+                  child: DrawerHeader(
+                    padding: EdgeInsets.fromLTRB(0.0, 2.0, 0.0, 2.0),
+                    decoration:
+                        BoxDecoration(color: Color.fromRGBO(76, 86, 96, 1.0)),
+                    child: Column(children: [
+                      buildTopRowOfDrawerHeader(context),
+                      Align(
+                        alignment: Alignment.center,
+                        child: CircleAvatar(
+                          maxRadius: 60.0,
+                          minRadius: 30.0,
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Padding(
+                              padding: EdgeInsets.only(top: 10.0),
+                              child: Text(
+                                '${user.firstName} ${user.lastName}',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16.0,
+                                  fontFamily: "OpenSans",
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              )),
+                        ],
+                      )
+                    ]),
+                  ));
+            } else {
+              return DrawerHeader(child: Column());
+            }
+          });
     }
 
     return Drawer(
@@ -104,6 +157,33 @@ class _MainScreenState extends State<MainScreen> {
             ),
         ],
       ),
+    );
+  }
+
+  Widget buildTopRowOfDrawerHeader(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        Align(
+          alignment: Alignment.topLeft,
+          child: Switch(
+            value: _isSwitched,
+            onChanged: (value) {
+              setState(() {
+                _isSwitched = !_isSwitched;
+              });
+            },
+            activeColor: Colors.blue[400],
+            activeTrackColor: Colors.blue[100],
+            inactiveThumbColor: Colors.green,
+            inactiveTrackColor: Colors.green[100],
+          ),
+        ),
+        Align(
+          alignment: Alignment.topLeft,
+          child: _isSwitched ? customerText : driverText,
+        ),
+      ],
     );
   }
 }
