@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:zip/business/auth.dart';
 import 'package:zip/business/user.dart';
 import 'package:zip/models/user.dart';
@@ -33,9 +32,7 @@ class _MainScreenState extends State<MainScreen> {
             icon: new Icon(Icons.menu),
             onPressed: () => _scaffoldKey.currentState.openDrawer()),
         title: TextField(
-          decoration: InputDecoration(
-            hintText: 'Where to?'
-          ),
+          decoration: InputDecoration(hintText: 'Where to?'),
         ),
         centerTitle: true,
       ),
@@ -73,40 +70,41 @@ class _MainScreenState extends State<MainScreen> {
     }
 
     return Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            _buildHeader(),
-            ListTile(
-              title: Text('Edit Profile'),
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.pushNamed(context, '/profile');
-              },
-            ),
-            ListTile(
-              title: Text('Promos'),
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.push(context, MaterialPageRoute(builder: (context) => PromosScreen()));
-              },
-            ),
-            ListTile(
-              title: Text('Log Out'),
-              onTap: () {
-                _logOut();
-                _scaffoldKey.currentState.openEndDrawer();
-              },
-            ),
-            ListTile(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          _buildHeader(),
+          ListTile(
+            title: Text('Edit Profile'),
+            onTap: () {
+              Navigator.of(context).pop();
+              Navigator.pushNamed(context, '/profile');
+            },
+          ),
+          ListTile(
+            title: Text('Promos'),
+            onTap: () {
+              Navigator.of(context).pop();
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => PromosScreen()));
+            },
+          ),
+          ListTile(
+            title: Text('Log Out'),
+            onTap: () {
+              _logOut();
+              _scaffoldKey.currentState.openEndDrawer();
+            },
+          ),
+          ListTile(
               title: Text('Settings'),
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context)=> SettingsScreen()));
               },
             ),
-          ],
-        ),
-      );
+        ],
+      ),
+    );
   }
 }
 
@@ -118,12 +116,18 @@ class TheMap extends StatefulWidget {
 class MapScreen extends State<TheMap> {
   static LatLng _initialPosition;
   final Set<Marker> _markers = {};
+  BitmapDescriptor pinLocationIcon;
+  final Set<LatLng> driverPositions = {
+    LatLng(32.62532, -85.46849),
+    LatLng(32.62932, -85.46249)
+  };
   static LatLng _lastMapPosition = _initialPosition;
   Completer<GoogleMapController> _controller = Completer();
 
   @override
   void initState() {
     super.initState();
+    setCustomMapPin();
     _getUserLocation();
   }
 
@@ -135,24 +139,31 @@ class MapScreen extends State<TheMap> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      body: _initialPosition == null
+      body: _initialPosition == null || pinLocationIcon == null
           ? Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-            ),
-          )
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+              ),
+            )
           : GoogleMap(
               mapType: MapType.normal,
               initialCameraPosition: _currentPosition,
               onMapCreated: (GoogleMapController controller) {
                 _controller.complete(controller);
               },
+              markers: _markers,
               myLocationButtonEnabled: true,
               myLocationEnabled: true,
               mapToolbarEnabled: true,
             ),
     );
   }
+
+  void setCustomMapPin() async {
+      pinLocationIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(devicePixelRatio: 4.5),
+      'assets/golf_cart.png');
+   }
 
   void _getUserLocation() async {
     Position position = await Geolocator()
@@ -162,5 +173,11 @@ class MapScreen extends State<TheMap> {
     setState(() {
       _initialPosition = LatLng(position.latitude, position.longitude);
     });
+    driverPositions.forEach((dr) => _markers.add(Marker(
+          markerId: MarkerId('testing'),
+          position: dr,
+          icon: pinLocationIcon,
+          
+        )));
   }
 }

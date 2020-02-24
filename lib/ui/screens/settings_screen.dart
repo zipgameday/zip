@@ -1,11 +1,5 @@
 import "package:flutter/material.dart";
-import "package:zip/ui/widgets/custom_text_field.dart";
-import 'package:zip/business/auth.dart';
-import 'package:zip/business/validator.dart';
-import 'package:flutter/services.dart';
-import 'package:zip/ui/widgets/custom_flat_button.dart';
-import 'package:zip/ui/widgets/custom_alert_dialog.dart';
-import 'package:zip/models/user.dart';
+import 'package:zip/ui/screens/profile_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   _SettingsScreenState createState() => _SettingsScreenState();
@@ -46,98 +40,97 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
                ),
             SettingRec(
-              child: Row(
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(left: 6.0),
-                    child: Icon(Icons.account_box, size: 28.0, color: Colors.white),
-                  ),
-                  Text("  Username",
+              child: ListTile(
+                leading: Icon(Icons.account_box, size: 28.0, color: Colors.white),
+                title:const Text("Username",
                       textAlign: TextAlign.left,
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: 24.0,
                           fontWeight: FontWeight.w300,
-                          fontFamily: "OpenSans"))
-                ],
+                          fontFamily: "OpenSans")),
+              
+                  onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> ProfileScreen()));
+              }
+              
+                  
+                    //child: Icon(Icons.account_box, size: 28.0, color: Colors.white),
+                
+              ),
+            ),
+            SettingRec(
+             child: ListTile(
+                leading: Icon(Icons.monetization_on, size: 28.0, color: Colors.white),
+                title:const Text("Default tip",
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24.0,
+                          fontWeight: FontWeight.w300,
+                          fontFamily: "OpenSans")),
+              
+                  onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> ProfileScreen()));
+              }
+              ),
+            ),
+            SettingRec(
+              child: ListTile(
+                leading: Icon(Icons.drive_eta, size: 28.0, color: Colors.white),
+                title:const Text("Drive with Zip",
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24.0,
+                          fontWeight: FontWeight.w300,
+                          fontFamily: "OpenSans")),
+              
+                  onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> ProfileScreen()));
+              }
+              ),
+            ),
+            SettingRec(
+               child: ListTile(
+                leading: Icon(Icons.lock, size: 28.0, color: Colors.white),
+                title:const Text("Privacy",
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24.0,
+                          fontWeight: FontWeight.w300,
+                          fontFamily: "OpenSans")),
+              
+                  onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> ProfileScreen()));
+              }
+              ),
+            ),
+            SettingRec(
+               child: ListTile(
+                leading: Icon(Icons.gavel, size: 28.0, color: Colors.white),
+                title:const Text("Legal",
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24.0,
+                          fontWeight: FontWeight.w300,
+                          fontFamily: "OpenSans")),
+              
+                  onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> ProfileScreen()));
+              }
               ),
             ),
             SettingRec(
               child: Row(
                 children: <Widget>[
                   Padding(
-                    padding: const EdgeInsets.only(left: 6.0),
-                    child: Icon(Icons.monetization_on, size: 28.0, color: Colors.white),
-                  ),
-                  Text("  Default tip",
-                      textAlign: TextAlign.left,
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24.0,
-                          fontWeight: FontWeight.w300,
-                          fontFamily: "OpenSans"))
-                ],
-              ),
-            ),
-            SettingRec(
-              child: Row(
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(left: 6.0),
-                    child: Icon(Icons.drive_eta, size: 28.0, color: Colors.white),
-                  ),
-                  Text("  Drive with Zip",
-                      textAlign: TextAlign.left,
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24.0,
-                          fontWeight: FontWeight.w300,
-                          fontFamily: "OpenSans"))
-                ],
-              ),
-            ),
-            SettingRec(
-              child: Row(
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(left: 6.0),
-                    child: Icon(Icons.lock, size: 28.0, color: Colors.white),
-                  ),
-                  Text("  Privacy",
-                      textAlign: TextAlign.left,
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24.0,
-                          fontWeight: FontWeight.w300,
-                          fontFamily: "OpenSans"))
-                ],
-              ),
-            ),
-            SettingRec(
-              child: Row(
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(left: 6.0),
-                    child: Icon(Icons.gavel, size: 28.0, color: Colors.white),
-                  ),
-                  Text("  Legal",
-                      textAlign: TextAlign.left,
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24.0,
-                          fontWeight: FontWeight.w300,
-                          fontFamily: "OpenSans"))
-                ],
-              ),
-            ),
-            SettingRec(
-              child: Row(
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(left: 6.0),
+                    padding: const EdgeInsets.only(left: 14.0),
                     child: Icon(Icons.email, size: 28.0, color: Colors.white),
                   ),
-                  Text("  Email",
+                  Text("     Email",
                       textAlign: TextAlign.left,
                       style: TextStyle(
                           color: Colors.white,
@@ -151,10 +144,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Row(
                 children: <Widget>[
                   Padding(
-                    padding: const EdgeInsets.only(left: 6.0),
+                    padding: const EdgeInsets.only(left: 14.0),
                     child: Icon(Icons.local_phone, size: 28.0, color: Colors.white),
                   ),
-                  Text("  Phone",
+                  Text("     Phone",
                       textAlign: TextAlign.left,
                       style: TextStyle(
                           color: Colors.white,
@@ -168,10 +161,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Row(
                 children: <Widget>[
                   Padding(
-                    padding: const EdgeInsets.only(left: 6.0),
+                    padding: const EdgeInsets.only(left: 14.0),
                     child: Icon(Icons.home, size: 28.0, color:Colors.white),
                   ),
-                  Text("  Home Address",
+                  Text("     Home Address",
                       textAlign: TextAlign.left,
                       style: TextStyle(
                           color: Colors.white,
@@ -185,10 +178,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Row(
                 children: <Widget>[
                   Padding(
-                    padding: const EdgeInsets.only(left: 6.0),
+                    padding: const EdgeInsets.only(left: 14.0),
                     child: Icon(Icons.not_interested, size: 28.0, color: Colors.white),
                   ),
-                  Text("  Sign Out",
+                  Text("     Sign Out",
                       textAlign: TextAlign.left,
                       style: TextStyle(
                           color: Colors.white,
