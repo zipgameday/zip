@@ -47,7 +47,7 @@ class DriverService {
       _firestore
         .collection('drivers').document(userService.userID).updateData(
           {
-            'lastActivity': userService.userID,
+            'lastActivity': DateTime.now(),
             'position': myLocation.data,
             'available': true,
             'working': true
