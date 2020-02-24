@@ -14,6 +14,7 @@ class SignInScreen extends StatefulWidget {
 class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController _email = new TextEditingController();
   final TextEditingController _password = new TextEditingController();
+  final TextEditingController _forgotPass = new TextEditingController();
   CustomTextField _emailField;
   CustomTextField _passwordField;
   bool _blackVisible = false;
@@ -29,15 +30,14 @@ class _SignInScreenState extends State<SignInScreen> {
     };
 
     _emailField = new CustomTextField(
-      baseColor: Colors.grey[400],
-      borderColor: Colors.grey[400],
-      errorColor: Colors.red,
-      controller: _email,
-      hint: "E-mail Address",
-      inputType: TextInputType.emailAddress,
-      validator: Validator.validateEmail,
-      customTextIcon: Icon(Icons.mail, color: Colors.grey[400])
-    );
+        baseColor: Colors.grey[400],
+        borderColor: Colors.grey[400],
+        errorColor: Colors.red,
+        controller: _email,
+        hint: "E-mail Address",
+        inputType: TextInputType.emailAddress,
+        validator: Validator.validateEmail,
+        customTextIcon: Icon(Icons.mail, color: Colors.grey[400]));
     _passwordField = CustomTextField(
       baseColor: Colors.grey[400],
       borderColor: Colors.grey[400],
@@ -48,7 +48,6 @@ class _SignInScreenState extends State<SignInScreen> {
       validator: Validator.validatePassword,
       customTextIcon: Icon(CustomIcons.lock, color: Colors.grey[400]),
     );
-
   }
 
   @override
@@ -81,10 +80,9 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.only(
-                          top: 20.0, bottom: 10.0, left: 15.0, right: 15.0),
-                      child: _emailField
-                    ),
+                        padding: EdgeInsets.only(
+                            top: 20.0, bottom: 10.0, left: 15.0, right: 15.0),
+                        child: _emailField),
                     Padding(
                       padding: EdgeInsets.only(
                           top: 10.0, bottom: 20.0, left: 15.0, right: 15.0),
@@ -110,55 +108,65 @@ class _SignInScreenState extends State<SignInScreen> {
                         color: Color.fromRGBO(76, 86, 96, 1.0),
                       ),
                     ),
-                      Padding(
-                        padding: EdgeInsets.only(
+                    Padding(
+                      padding: EdgeInsets.only(
                           top: 10.0, bottom: 20.0, left: 10.0, right: 0.0),
-                        child: CustomFlatButton(
-                          title: "Forgot Password?",
-                          textColor: Color.fromRGBO(76, 86, 96, 1.0),
-                          fontSize: 18.0,
-                          fontWeight: FontWeight.w400,
-                          onPressed: () {},
-                          color: Colors.white,
-                          splashColor: Colors.grey[100],
-                          borderColor: Colors.white,
-                          borderWidth: 0.0,
-                        ),
+                      child: CustomFlatButton(
+                        title: "Forgot Password?",
+                        textColor: Color.fromRGBO(76, 86, 96, 1.0),
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.w400,
+                        onPressed: () async{
+                          await showDialog(
+                            barrierDismissible: false,
+                            context: context,
+                            builder: (context) {
+                              return buildAlertTextField(
+                                  context, "Forgot Password", _forgotPass, _changeBlackVisible);
+                            },
+                          );
+                          
+                        },
+                        color: Colors.white,
+                        splashColor: Colors.grey[100],
+                        borderColor: Colors.white,
+                        borderWidth: 0.0,
                       ),
-                      Padding(
-                        padding: EdgeInsets.only(
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(
                           top: 50.0, bottom: 20.0, left: 10.0, right: 0.0),
-                        child: Text(
-                          "Dont have an account?",
-                          textAlign: TextAlign.center,
-                          softWrap: true,
-                          style: TextStyle (
-                            color: Color.fromRGBO(76, 86, 96, 1.0),
-                            decoration: TextDecoration.none,
-                            fontSize: 20.0,
-                            fontWeight: FontWeight.w400,
-                            fontFamily: "OpenSans",
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(
-                          top: 0.0, bottom: 60.0, left: 10.0, right: 0.0),
-                        child: CustomFlatButtonWithUnderline(
-                          title: "Click here",
-                          textColor: Color(0xFF0300F2),
-                          fontSize: 18.0,
+                      child: Text(
+                        "Dont have an account?",
+                        textAlign: TextAlign.center,
+                        softWrap: true,
+                        style: TextStyle(
+                          color: Color.fromRGBO(76, 86, 96, 1.0),
+                          decoration: TextDecoration.none,
+                          fontSize: 20.0,
                           fontWeight: FontWeight.w400,
-                          //I would push the sign up page, 
-                          //but the user could hit the back
-                          //button and go to the sign in.
-                          onPressed: () {},
-                          color: Colors.white,
-                          splashColor: Colors.grey[100],
-                          borderColor: Colors.white,
-                          borderWidth: 0.0,
+                          fontFamily: "OpenSans",
                         ),
                       ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(
+                          top: 0.0, bottom: 60.0, left: 10.0, right: 0.0),
+                      child: CustomFlatButtonWithUnderline(
+                        title: "Click here",
+                        textColor: Color(0xFF0300F2),
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.w400,
+                        //I would push the sign up page,
+                        //but the user could hit the back
+                        //button and go to the sign in.
+                        onPressed: () {},
+                        color: Colors.white,
+                        splashColor: Colors.grey[100],
+                        borderColor: Colors.white,
+                        borderWidth: 0.0,
+                      ),
+                    ),
                   ],
                 ),
                 SafeArea(
@@ -203,7 +211,8 @@ class _SignInScreenState extends State<SignInScreen> {
       try {
         SystemChannels.textInput.invokeMethod('TextInput.hide');
         _changeBlackVisible();
-        await auth.signIn(email, password)
+        await auth
+            .signIn(email, password)
             .then((uid) => Navigator.of(context).pop());
       } catch (e) {
         print("Error in email sign in: $e");
@@ -228,6 +237,76 @@ class _SignInScreenState extends State<SignInScreen> {
           onPressed: onPressed,
         );
       },
+    );
+  }
+
+ 
+
+  Widget buildAlertTextField(
+      BuildContext context, String title, TextEditingController controller, VoidCallback onPressed) {
+    return AlertDialog(
+      contentPadding: EdgeInsets.all(5.0),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(32.0))),
+      title: Text(
+        title,
+        softWrap: true,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: Colors.black,
+          decoration: TextDecoration.none,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          fontFamily: "OpenSans",
+        ),
+      ),
+      content: Container(
+        height: 150,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            TextField(
+              controller: controller,
+              autofocus: true,
+              textAlign: TextAlign.center,
+              decoration: InputDecoration(
+                  hintText: "Enter email",
+                  hintStyle: TextStyle(
+                      color: Colors.grey[400],
+                      fontFamily: "OpenSans",
+                      fontWeight: FontWeight.w300,
+                      decoration: TextDecoration.none),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(color: Colors.black),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide(color: Colors.black))),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 10.0),
+              child: CustomFlatButton(
+                title: "OK",
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                textColor: Colors.black54,
+                onPressed: () async {
+                  try {
+                    await auth.sendResetPassword(_forgotPass.text);
+                  } catch (e) {
+                  }
+                  Navigator.of(context).pop();
+                },
+                splashColor: Colors.black12,
+                borderColor: Colors.black12,
+                borderWidth: 2,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

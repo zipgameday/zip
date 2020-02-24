@@ -78,6 +78,7 @@ class AuthService {
     }, merge: true);
   }
 
+
   Future<void> updateUserData(FirebaseUser user) async {
     DocumentReference userRef = _db.collection('users').document(user.uid);
 
@@ -125,6 +126,10 @@ class AuthService {
         return User.fromDocument(doc);
       }).first;
     });
+  }
+
+  Future<void> sendResetPassword(String email) async{
+    return _auth.sendPasswordResetEmail(email: email);
   }
 
   String getExceptionText(Exception e) {

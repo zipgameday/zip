@@ -32,23 +32,25 @@ class User {
       'phone': phone == null ? '' : phone,
       'lastActivity': lastActivity,
       'email': email == null ? '' : email,
-      'credits': credits == null ? 0 : credits,
+      'credits': credits == null ? 0.0 : credits,
       'homeAddress': homeAddress == null ? '' : homeAddress,
       'profilePictureURL': profilePictureURL == null ? '' : profilePictureURL
     };
   }
 
   factory User.fromJson(Map<String, Object> doc) {
+    num creds = doc['credits'] == null ? 0.0 : doc['credits'];
+
     User user = new User(
       uid: doc['uid'],
-      firstName: doc['firstName'],
-      lastName: doc['lastName'],
+      firstName: doc['firstName'] == null ? '' : doc['firstName'],
+      lastName: doc['lastName'] == null ? '' : doc['lastName'],
       lastActivity: convertStamp(doc['lastActivity']),
-      phone: doc['phone'],
-      email: doc['email'],
-      credits: doc['credits'],
-      homeAddress: doc['homeAddress'],
-      profilePictureURL: doc['profilePictureURL'],
+      phone: doc['phone'] == null ? '' : doc['phone'],
+      email: doc['email'] == null ? '' : doc['email'] ,
+      credits: creds.toDouble(),
+      homeAddress: doc['homeAddress'] == null ? '' : doc['homeAddress'],
+      profilePictureURL: doc['profilePictureURL'] == null ? '' : doc['profilePictureURL'],
     );
     return user;
   }
