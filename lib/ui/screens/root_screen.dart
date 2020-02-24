@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:zip/business/drivers.dart';
+import 'package:zip/business/location.dart';
 import 'package:zip/business/user.dart';
 import 'package:zip/ui/screens/welcome_screen.dart';
 import 'package:zip/ui/screens/main_screen.dart';
@@ -9,7 +11,24 @@ class RootScreen extends StatefulWidget {
   State<StatefulWidget> createState() => new _RootScreenState();
 }
 
+enum LoadingState {
+  none,
+  loading,
+  done,
+}
+
 class _RootScreenState extends State<RootScreen> {
+  LoadingState loading = LoadingState.none;
+
+  Widget _buildWaitingScreen() {
+    return Scaffold(
+      body: Container(
+        alignment: Alignment.center,
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<FirebaseUser>(
@@ -21,15 +40,39 @@ class _RootScreenState extends State<RootScreen> {
           );
         } else {
           if (snapshot.hasData) {
-            UserService userService = UserService();
-            print(snapshot.data.uid);
-            userService.setupService(snapshot.data.uid);
-            return MainScreen();
+            switch (loading) {
+              case LoadingState.none:
+                _initializeServices(snapshot.data.uid).whenComplete(() {
+                  setState(() {
+                    loading = LoadingState.done;
+                  });
+                }); 
+                loading = LoadingState.loading;
+                return _buildWaitingScreen();
+                break;
+              case LoadingState.loading:
+                return _buildWaitingScreen();
+                break;
+              case LoadingState.done:
+                return MainScreen();
+                break;
+              default:
+                print("Error: Unknown loading state");
+            }
           } else {
             return WelcomeScreen();
           }
         }
       },
     );
+  }
+
+  Future<bool> _initializeServices(String uid) async {
+    UserService userService = UserService();
+    userService.setupService(uid);
+    LocationService locationService = LocationService();
+    await locationService.setupService();
+    DriverService();
+    return true;
   }
 }

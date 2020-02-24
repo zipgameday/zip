@@ -16,7 +16,6 @@ class PromosScreen extends StatefulWidget {
 
 class _PromosScreenState extends State<PromosScreen> {
   VoidCallback onBackPress;
-  double _credits = 0.0;
   UserService userService = UserService();
   bool _isInAsyncCall = false;
 
