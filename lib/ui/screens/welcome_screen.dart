@@ -94,7 +94,7 @@ class WelcomeScreen extends StatelessWidget {
             padding: const EdgeInsets.only(
                 top: 5.0),
             child: Center(
-              child: FacebookSignInButton(onPressed: () { },
+              child: FacebookSignInButton(onPressed: () { AuthService().facebookSignIn(); },
               borderRadius: 12.0,
               ),
             ),

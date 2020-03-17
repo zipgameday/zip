@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:zip/models/user.dart';
@@ -25,16 +26,52 @@ class AuthService {
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-
       FirebaseUser user = (await _auth.signInWithCredential(credential)).user;
       updateUserData(user);
-
       return user;
     } catch (error) {
       print(error);
       return null;
     }
   }
+
+  Future<FirebaseUser> facebookSignIn() async {
+    try {
+      FacebookLoginResult facebookLoginResult = await _handleFBSignIn();
+      final accessToken = facebookLoginResult.accessToken.token;
+      if (facebookLoginResult.status == FacebookLoginStatus.loggedIn) {
+        final facebookAuthCred =
+            FacebookAuthProvider.getCredential(accessToken: accessToken);
+        final user =
+            (await _auth.signInWithCredential(facebookAuthCred)).user;
+        updateUserData(user);
+        return user;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      print(error);
+      return null;
+    }
+  }
+
+  Future<FacebookLoginResult> _handleFBSignIn() async {
+      FacebookLogin facebookLogin = FacebookLogin();
+      FacebookLoginResult facebookLoginResult =
+          await facebookLogin.logIn(['email']);
+      switch (facebookLoginResult.status) {
+        case FacebookLoginStatus.cancelledByUser:
+          print("Cancelled");
+          break;
+        case FacebookLoginStatus.error:
+          print("error");
+          break;
+        case FacebookLoginStatus.loggedIn:
+          print("Logged In");
+          break;
+      }
+      return facebookLoginResult;
+    }
 
   Future<String> signIn(String email, String password) async {
     AuthResult result = await _auth.signInWithEmailAndPassword(
