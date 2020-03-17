@@ -11,6 +11,7 @@ class User {
   final num credits;
   final String homeAddress;
   final DateTime lastActivity;
+  final bool isDriver;
 
   User({
     this.uid,
@@ -22,6 +23,7 @@ class User {
     this.homeAddress,
     this.lastActivity,
     this.profilePictureURL,
+    this.isDriver
   });
 
   Map<String, Object> toJson() {
@@ -34,7 +36,8 @@ class User {
       'email': email == null ? '' : email,
       'credits': credits == null ? 0.0 : credits,
       'homeAddress': homeAddress == null ? '' : homeAddress,
-      'profilePictureURL': profilePictureURL == null ? '' : profilePictureURL
+      'profilePictureURL': profilePictureURL == null ? '' : profilePictureURL,
+      'isDriver': isDriver == null ? false : isDriver
     };
   }
 
@@ -51,6 +54,7 @@ class User {
       credits: creds.toDouble(),
       homeAddress: doc['homeAddress'] == null ? '' : doc['homeAddress'],
       profilePictureURL: doc['profilePictureURL'] == null ? '' : doc['profilePictureURL'],
+      isDriver: doc['isDriver'] == null ? false : doc['isDriver']
     );
     return user;
   }
