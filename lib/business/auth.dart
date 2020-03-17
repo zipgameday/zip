@@ -76,7 +76,7 @@ class AuthService {
   Future<String> signIn(String email, String password) async {
     AuthResult result = await _auth.signInWithEmailAndPassword(
         email: email, password: password);
-    updateUserActivity(result.user.uid);
+    updateUserData(result.user);
     return result.user.uid;
   }
 
@@ -96,31 +96,22 @@ class AuthService {
   }
 
   void addUser(User user) async {
-    checkUserExist(user.uid).then((value) {
-      if (!value) {
-        print("user ${user.firstName} ${user.email} added");
-        Firestore.instance
-            .document("users/${user.uid}")
-            .setData(user.toJson());
-      } else {
-        print("user ${user.firstName} ${user.email} exists");
-      }
-    });
+    DocumentSnapshot doc = await _db.collection('users').document(user.uid).get();
+    if (doc.exists) {
+      print("user ${user.firstName} ${user.email} already exists");
+    } else {
+      print("user ${user.firstName} ${user.email} added");
+      Firestore.instance
+          .document("users/${user.uid}")
+          .setData(user.toJson());
+    }
   }
-
-  void updateUserActivity(String uid) {
-    DocumentReference userRef = _db.collection('users').document(uid);
-    userRef.setData({
-      'lastActivity': DateTime.now(),
-    }, merge: true);
-  }
-
 
   Future<void> updateUserData(FirebaseUser user) async {
     DocumentReference userRef = _db.collection('users').document(user.uid);
+    DocumentSnapshot doc = await userRef.get();
 
-    checkUserExist(user.uid).then((value) {
-      if (!value) {
+      if (!doc.exists) {
         return userRef.setData({
           'uid': user.uid,
           'lastActivity': DateTime.now(),
@@ -128,29 +119,15 @@ class AuthService {
           'firstName': (user.displayName.contains(" ")) ? user.displayName.substring(0, user.displayName.indexOf(' ')) : user.displayName,
           'lastName': (user.displayName.contains(" ")) ? user.displayName.substring(user.displayName.indexOf(' ') + 1, user.displayName.length) : '',
           'phone': user.phoneNumber,
-          'profilePictureURL' : user.photoUrl
+          'profilePictureURL' : user.photoUrl,
+          'isDriver': false,
+          'credits': 0,
         }, merge: true);
       } else {
-        return userRef.setData({
-          'lastActivity': DateTime.now(),
-        }, merge: true);
+        User user = User.fromDocument(doc);
+        user.updateActivity();
+        return userRef.setData(user.toJson(), merge: true);
       }
-    });
-  }
-
-  Future<bool> checkUserExist(String userID) async {
-    bool exists = false;
-    try {
-      await _db.document("users/$userID").get().then((doc) {
-        if (doc.exists)
-          exists = true;
-        else
-          exists = false;
-      });
-      return exists;
-    } catch (e) {
-      return false;
-    }
   }
 
   Stream<User> getUser(String userID) {

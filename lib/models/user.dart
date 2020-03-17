@@ -10,7 +10,7 @@ class User {
   final String profilePictureURL;
   final num credits;
   final String homeAddress;
-  final DateTime lastActivity;
+  DateTime lastActivity;
   final bool isDriver;
 
   User({
@@ -62,4 +62,9 @@ class User {
   factory User.fromDocument(DocumentSnapshot doc) {
     return User.fromJson(doc.data);
   }
+
+  void updateActivity() {
+    this.lastActivity = DateTime.now();
+  }
+
 }
