@@ -76,9 +76,6 @@ class _MainScreenState extends State<MainScreen> {
     AuthService().signOut();
   }
 
-  _getNearestDrivers() {
-  }
-
   Widget buildDrawer(BuildContext context) {
     _buildHeader() {
       return StreamBuilder<DocumentSnapshot>(
