@@ -11,15 +11,14 @@ dependencies:
   url_launcher: ^5.1.2
   cloud_firestore: 
   cloud_functions: ^0.4.2
-
   firebase_core: 
   firebase_auth:
   firebase_analytics:
   firebase_messaging: ^5.0.2
-
   flutter_local_notifications: ^1.2.0+2
   font_awesome_flutter: 8.4.0
   google_sign_in: 
+  flutter_facebook_login: ^3.0.0
   shared_preferences: 
   flutter_swiper:
   google_maps_flutter: ^0.5.11

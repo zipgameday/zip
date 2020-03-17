@@ -54,7 +54,8 @@ class DriverService {
           });
     } else {
       _firestore.collection('drivers').add({
-        'lastActivity': userService.userID,
+        'uid': userService.userID,
+        'lastActivity': DateTime.now(),
         'position': myLocation.data,
         'available': true,
         'working': true
