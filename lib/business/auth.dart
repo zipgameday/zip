@@ -107,22 +107,13 @@ class AuthService {
     }
   }
 
-  Future<void> updateUserData(FirebaseUser user) async {
-    DocumentReference userRef = _db.collection('users').document(user.uid);
+  Future<void> updateUserData(FirebaseUser fuser) async {
+    DocumentReference userRef = _db.collection('users').document(fuser.uid);
     DocumentSnapshot doc = await userRef.get();
 
       if (!doc.exists) {
-        return userRef.setData({
-          'uid': user.uid,
-          'lastActivity': DateTime.now(),
-          'email': user.email,
-          'firstName': (user.displayName.contains(" ")) ? user.displayName.substring(0, user.displayName.indexOf(' ')) : user.displayName,
-          'lastName': (user.displayName.contains(" ")) ? user.displayName.substring(user.displayName.indexOf(' ') + 1, user.displayName.length) : '',
-          'phone': user.phoneNumber,
-          'profilePictureURL' : user.photoUrl,
-          'isDriver': false,
-          'credits': 0,
-        }, merge: true);
+        User user = User.fromFirebaseUser(fuser);
+        return userRef.setData(user.toJson(), merge: true);
       } else {
         User user = User.fromDocument(doc);
         user.updateActivity();

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../utils.dart';
 
 class User {
@@ -55,6 +56,22 @@ class User {
       homeAddress: doc['homeAddress'] == null ? '' : doc['homeAddress'],
       profilePictureURL: doc['profilePictureURL'] == null ? '' : doc['profilePictureURL'],
       isDriver: doc['isDriver'] == null ? false : doc['isDriver']
+    );
+    return user;
+  }
+
+  factory User.fromFirebaseUser(FirebaseUser fuser) {
+    User user = new User(
+      uid: fuser.uid,
+      firstName: (fuser.displayName.contains(" ")) ? fuser.displayName.substring(0, fuser.displayName.indexOf(' ')) : fuser.displayName,
+      lastName: (fuser.displayName.contains(" ")) ? fuser.displayName.substring(fuser.displayName.indexOf(' ') + 1, fuser.displayName.length) : '',
+      lastActivity: DateTime.now(),
+      phone: fuser.phoneNumber,
+      email: fuser.email,
+      credits: 0,
+      homeAddress: '',
+      profilePictureURL: fuser.photoUrl,
+      isDriver: false
     );
     return user;
   }
