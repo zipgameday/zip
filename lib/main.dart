@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    FirebaseNotifications().setUpFirebase(context); 
+    FirebaseNotifications().setUpFirebase(); 
     return MaterialApp(
         title: 'Zip Gameday',
         debugShowCheckedModeBanner: false,
