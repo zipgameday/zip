@@ -1,5 +1,8 @@
+import 'dart:io' show Platform;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:search_map_place/search_map_place.dart';
 import 'package:zip/business/auth.dart';
 import 'package:zip/business/drivers.dart';
 import 'package:zip/business/location.dart';
@@ -21,6 +24,8 @@ class _MainScreenState extends State<MainScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final UserService userService = UserService();
   final LocationService locationService = LocationService();
+  final String ios_map_key = "AIzaSyC-qi8dEKCFP1q3FKu9Faxkabd-lj8ysJw";
+  final String android_map_key = "AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g";
 
   static bool _isSwitched = true;
   static Text driverText = Text("Driver",
@@ -57,18 +62,26 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      appBar: new AppBar(
-        elevation: 0.5,
-        leading: new IconButton(
-            icon: new Icon(Icons.menu),
-            onPressed: () => _scaffoldKey.currentState.openDrawer()),
-        title: TextField(
-          decoration: InputDecoration(hintText: 'Where to?'),
+      body: Stack(children: <Widget>[
+        TheMap(),
+        Positioned(
+          top: 100,
+          left: MediaQuery.of(context).size.width * 0.05,
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.09,
+            width: MediaQuery.of(context).size.width * 0.9,
+            child: TextField(decoration: InputDecoration(hintText: "Where To?"))
+          ),
         ),
-        centerTitle: true,
-      ),
+        Positioned(
+          top: 60,
+          left: MediaQuery.of(context).size.width * 0.01,
+          child: IconButton(
+              icon: Icon(Icons.menu),
+              onPressed: () => _scaffoldKey.currentState.openDrawer()),
+        ),
+      ]),
       drawer: buildDrawer(context),
-      body: TheMap(),
     );
   }
 
@@ -153,12 +166,13 @@ class _MainScreenState extends State<MainScreen> {
             },
           ),
           ListTile(
-              title: Text('Settings'),
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.push(context, MaterialPageRoute(builder: (context)=> SettingsScreen()));
-              },
-            ),
+            title: Text('Settings'),
+            onTap: () {
+              Navigator.of(context).pop();
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => SettingsScreen()));
+            },
+          ),
         ],
       ),
     );
@@ -239,7 +253,7 @@ class MapScreen extends State<TheMap> {
                 _controller.complete(controller);
               },
               markers: _markers,
-              myLocationButtonEnabled: true,
+              myLocationButtonEnabled: false,
               myLocationEnabled: true,
               mapToolbarEnabled: true,
             ),
@@ -247,10 +261,9 @@ class MapScreen extends State<TheMap> {
   }
 
   void setCustomMapPin() async {
-      pinLocationIcon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(devicePixelRatio: 4.5),
-      'assets/golf_cart.png');
-   }
+    pinLocationIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(devicePixelRatio: 4.5), 'assets/golf_cart.png');
+  }
 
   void _getUserLocation() async {
     Position position = await Geolocator()
@@ -264,11 +277,8 @@ class MapScreen extends State<TheMap> {
           markerId: MarkerId('testing'),
           position: dr,
           icon: pinLocationIcon,
-          
         )));
   }
 
-  void _getNearbyDrivers() {
-    
-  }
+  void _getNearbyDrivers() {}
 }
