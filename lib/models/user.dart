@@ -13,6 +13,7 @@ class User {
   final String homeAddress;
   DateTime lastActivity;
   final bool isDriver;
+  final String fcm_token;
 
   User({
     this.uid,
@@ -24,7 +25,8 @@ class User {
     this.homeAddress,
     this.lastActivity,
     this.profilePictureURL,
-    this.isDriver
+    this.isDriver,
+    this.fcm_token
   });
 
   Map<String, Object> toJson() {
@@ -38,7 +40,8 @@ class User {
       'credits': credits == null ? 0.0 : credits,
       'homeAddress': homeAddress == null ? '' : homeAddress,
       'profilePictureURL': profilePictureURL == null ? '' : profilePictureURL,
-      'isDriver': isDriver == null ? false : isDriver
+      'isDriver': isDriver == null ? false : isDriver,
+      'fcm_token': fcm_token == null ? '' : fcm_token
     };
   }
 
@@ -55,7 +58,8 @@ class User {
       credits: creds.toDouble(),
       homeAddress: doc['homeAddress'] == null ? '' : doc['homeAddress'],
       profilePictureURL: doc['profilePictureURL'] == null ? '' : doc['profilePictureURL'],
-      isDriver: doc['isDriver'] == null ? false : doc['isDriver']
+      isDriver: doc['isDriver'] == null ? false : doc['isDriver'],
+      fcm_token: doc['fcm_token'] == null ? '' : doc['fcm_token']
     );
     return user;
   }
@@ -71,7 +75,8 @@ class User {
       credits: 0,
       homeAddress: '',
       profilePictureURL: fuser.photoUrl,
-      isDriver: false
+      isDriver: false,
+      fcm_token: ''
     );
     return user;
   }

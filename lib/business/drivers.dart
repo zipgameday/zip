@@ -4,6 +4,7 @@ import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:zip/business/location.dart';
 import 'package:zip/business/user.dart';
+import 'package:zip/models/driver.dart';
 import 'package:zip/models/user.dart';
 
 class DriverService {
@@ -63,11 +64,11 @@ class DriverService {
     }
   }
 
-  Stream<List<DocumentSnapshot>> getNearbyDrivers() {
+  Stream<List<Driver>> getNearbyDrivers() {
     if(nearbyDrivers == null) {
       nearbyDrivers = geo.collection(collectionRef: driversCollection)
         .within(center: myLocation, radius: 50, field: 'position');
     }
-    return nearbyDrivers;
+    List<Driver> drivers = new List<Driver>();
   }
 }
