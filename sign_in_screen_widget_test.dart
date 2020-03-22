@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zip/business/auth.dart';
 import 'package:zip/business/validator.dart';
@@ -53,4 +53,4 @@ void main() {
    verify(mockAuth.signInWithEmailAndPassword('email', 'password')).called(1);
    expect(didSignIn, false);
  });
-}
+}*/

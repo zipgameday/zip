@@ -10,6 +10,7 @@ import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 import 'package:zip/ui/screens/settings_screen.dart';
 import 'package:zip/ui/screens/promos_screen.dart';
+import 'package:zip/ui/screens/driver_main_screen.dart';
 
 class MainScreen extends StatefulWidget {
   MainScreen();
@@ -94,11 +95,20 @@ class _MainScreenState extends State<MainScreen> {
                         BoxDecoration(color: Color.fromRGBO(76, 86, 96, 1.0)),
                     child: Column(children: [
                       buildTopRowOfDrawerHeader(context),
-                      Align(
-                        alignment: Alignment.center,
-                        child: CircleAvatar(
-                          maxRadius: 60.0,
-                          minRadius: 30.0,
+                      CircleAvatar(
+                        radius: 60.0,
+                        child: ClipOval(
+                          child: SizedBox(
+                            width: 130.0,
+                            height: 130.0,
+                            child: user.profilePictureURL == ''
+                                ? Image.network(
+                                    "gs://zipgameday-6ef28.appspot.com/FCMImages/profile_default.png")
+                                : Image.network(
+                                    user.profilePictureURL,
+                                    fit: BoxFit.fill,
+                                  ),
+                          ),
                         ),
                       ),
                       Row(
@@ -174,6 +184,10 @@ class _MainScreenState extends State<MainScreen> {
             value: _isSwitched,
             onChanged: (value) {
               setState(() {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+                Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => DriverMainScreen()));
                 _isSwitched = !_isSwitched;
               });
             },
@@ -244,10 +258,9 @@ class MapScreen extends State<TheMap> {
   }
 
   void setCustomMapPin() async {
-      pinLocationIcon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(devicePixelRatio: 4.5),
-      'assets/golf_cart.png');
-   }
+    pinLocationIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(devicePixelRatio: 4.5), 'assets/golf_cart.png');
+  }
 
   void _getUserLocation() async {
     Position position = await Geolocator()
@@ -261,7 +274,6 @@ class MapScreen extends State<TheMap> {
           markerId: MarkerId('testing'),
           position: dr,
           icon: pinLocationIcon,
-          
         )));
   }
 }
