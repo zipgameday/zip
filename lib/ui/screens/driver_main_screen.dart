@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:zip/business/auth.dart';
 import 'package:zip/business/user.dart';
 import 'package:zip/models/user.dart';
@@ -18,7 +19,7 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   bool _isClockedIn = false;
   bool _isAvailable = true;
-
+  bool _isInAsyncCall = false;
   @override
   void initState() {
     super.initState();
@@ -28,23 +29,12 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         key: _scaffoldKey,
-        appBar: AppBar(
-            leading: FlatButton(
-          onPressed: () {
-            setState(() {
-              //make routes call
-              _isAvailable = false;
-            });
-          },
-          child: Icon(Icons.thumb_up),
-        )),
         body: TheMap(),
-        bottomNavigationBar: _isClockedIn && _isAvailable
-            ? LinearProgressIndicator(
-                value: null,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-              )
-            : null,
+        bottomSheet: _isClockedIn ? Container(
+          height: MediaQuery.of(context).size.height / 3.0,
+          width: MediaQuery.of(context).size.width,
+          child: _isAvailable ? ModalProgressHUD(inAsyncCall: _isInAsyncCall, child: null) : null)
+         : null,
         floatingActionButtonLocation:
             _isClockedIn ? null : FloatingActionButtonLocation.centerDocked,
         floatingActionButton: _isClockedIn
