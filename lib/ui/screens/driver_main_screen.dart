@@ -18,8 +18,11 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
   final UserService userService = UserService();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   bool _isClockedIn = false;
-  bool _isAvailable = true;
-  bool _isInAsyncCall = false;
+  bool _isAvailable = false;
+  bool _foundCustomer = false;
+  bool _blackVisible = false;
+  Duration _time = Duration(seconds: 5);
+
   @override
   void initState() {
     super.initState();
@@ -27,14 +30,45 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    //StreamBuilder
+    //If rideshare document hasData, display Accept or Decline
+    //Within Streambuilder -> change UI based off if Available or not
+    //Else Return the UI we have now.
     return Scaffold(
         key: _scaffoldKey,
         body: TheMap(),
-        bottomSheet: _isClockedIn ? Container(
-          height: MediaQuery.of(context).size.height / 3.0,
-          width: MediaQuery.of(context).size.width,
-          child: _isAvailable ? ModalProgressHUD(inAsyncCall: _isInAsyncCall, child: null) : null)
-         : null,
+        appBar: AppBar(
+            leading: FlatButton.icon(
+                onPressed: () {
+                  setState(() {});
+                },
+                icon: Icon(Icons.ac_unit),
+                label: Text("hey"))),
+        bottomSheet: _isClockedIn && _isAvailable
+            ? Container(
+                color: Color.fromRGBO(76, 86, 96, 1.0),
+                height: MediaQuery.of(context).size.height / 5.0,
+                width: MediaQuery.of(context).size.width,
+                //probably
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 20.0),
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                      ),
+                    ),
+                    Text("Looking for rider",
+                        softWrap: true,
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w400,
+                            fontSize: 22.0,
+                            fontFamily: "OpenSans")),
+                  ],
+                ))
+            : null,
         floatingActionButtonLocation:
             _isClockedIn ? null : FloatingActionButtonLocation.centerDocked,
         floatingActionButton: _isClockedIn
@@ -46,6 +80,17 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
                   onPressed: () {
                     setState(() {
                       _isClockedIn = true;
+                      _isAvailable = true;
+                      Timer(_time, () async {
+                        await showDialog(
+                          barrierDismissible: false,
+                          context: context,
+                          builder: (context) {
+                            return _buildAcceptOrDeclineRider(
+                                context, _changeBlackVisible);
+                          },
+                        );
+                      });
                       //Call function to look for customer
                       //findRider(Driver driver)
                     });
@@ -58,6 +103,109 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
                   backgroundColor: Color.fromRGBO(76, 86, 96, 1.0),
                 ),
               ));
+  }
+
+//Build Popup
+  Widget _buildAcceptOrDeclineRider(
+      BuildContext context, VoidCallback onPressed) {
+    return AlertDialog(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(15.0))),
+        content: Container(
+            height: MediaQuery.of(context).size.height / 2.6,
+            child: Column(
+              children: <Widget>[
+                Align(
+                  alignment: Alignment.center,
+                  child: CircleAvatar(
+                    radius: 60.0,
+                    child: ClipOval(
+                      child: SizedBox(
+                          width: 100.0,
+                          height: 100.0,
+                          child: Image.asset('assets/golf_cart.png',
+                              fit: BoxFit.fill)),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 10.0),
+                  child: Text("John Doe"),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 20.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text("5.0"),
+                      Icon(Icons.star),
+                    ],
+                  ),
+                ),
+                ListBody(
+                  mainAxis: Axis.vertical,
+                  children: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text("Price: "),
+                        Text("\$20.00"),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text("Distance: "),
+                        Text("10 miles"),
+                      ],
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      FlatButton(
+                        color: Color.fromRGBO(76, 86, 96, 1.0),
+                        shape: RoundedRectangleBorder(),
+                        child: Text(
+                          "Accept",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isAvailable = false;
+                            Navigator.of(context).pop();
+                          });
+                        },
+                      ),
+                      FlatButton(
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                            side: BorderSide(color: Colors.black38)),
+                        child: Text(
+                          "Decline",
+                          style:
+                              TextStyle(color: Color.fromRGBO(76, 86, 96, 1.0)),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            Navigator.of(context).pop();
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )));
+  }
+
+  void _changeBlackVisible() {
+    setState(() {
+      _blackVisible = !_blackVisible;
+    });
   }
 }
 
@@ -103,8 +251,6 @@ class MapScreen extends State<TheMap> {
                   initialCameraPosition: _currentPosition,
                   onMapCreated: (GoogleMapController controller) {
                     _controller.complete(controller);
-                    setMapPins();
-                    setPolylines();
                   },
                   zoomGesturesEnabled: true,
                   markers: _markers,
