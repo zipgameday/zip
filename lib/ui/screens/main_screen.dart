@@ -2,14 +2,15 @@ import 'dart:io' show Platform;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:search_map_place/search_map_place.dart';
+import 'package:flutter_google_places/flutter_google_places.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_maps_webservice/places.dart';
 import 'package:zip/business/auth.dart';
 import 'package:zip/business/drivers.dart';
 import 'package:zip/business/location.dart';
 import 'package:zip/business/user.dart';
 import 'package:zip/models/user.dart';
 import 'package:zip/models/driver.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 import 'package:zip/ui/screens/settings_screen.dart';
@@ -66,23 +67,67 @@ class _MainScreenState extends State<MainScreen> {
       body: Stack(children: <Widget>[
         TheMap(),
         Positioned(
-          top: 100,
-          left: MediaQuery.of(context).size.width * 0.05,
-          child: Container(
-            height: MediaQuery.of(context).size.height * 0.09,
-            width: MediaQuery.of(context).size.width * 0.9,
-            child: TextField(decoration: InputDecoration(hintText: "Where To?"))
-          ),
+          top: 57,
+          left: 0,
+          child: Card(
+              color: Colors.transparent,
+              elevation: 100,
+              child: IconButton(
+                  iconSize: 44,
+                  color: Colors.black,
+                  icon: Icon(Icons.menu),
+                  onPressed: () => _scaffoldKey.currentState.openDrawer())),
         ),
         Positioned(
-          top: 60,
-          left: MediaQuery.of(context).size.width * 0.01,
-          child: IconButton(
-              icon: Icon(Icons.menu),
-              onPressed: () => _scaffoldKey.currentState.openDrawer()),
-        ),
+            top: 60,
+            left: MediaQuery.of(context).size.width * 0.15,
+            child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.grey,
+                        offset: Offset(1.0, 5.0),
+                        blurRadius: 10,
+                        spreadRadius: 3)
+                  ],
+                ),
+                height: MediaQuery.of(context).size.height * 0.07,
+                width: MediaQuery.of(context).size.width * 0.8,
+                child: TextField(
+                    onTap: () async {
+                      Prediction p = await PlacesAutocomplete.show(
+                          context: context,
+                          apiKey: Platform.isIOS
+                              ? this.ios_map_key
+                              : this.android_map_key,
+                          language: "en",
+                          components: [Component(Component.country, "us")],
+                          mode: Mode.overlay);
+                    },
+                    textInputAction: TextInputAction.go,
+                    decoration: InputDecoration(
+                      icon: Container(
+                        margin: EdgeInsets.only(left: 20, top: 5),
+                        width: 10,
+                        height: 10,
+                        child: Icon(
+                          Icons.local_taxi,
+                          color: Colors.black,
+                        ),
+                      ),
+                      hintText: "Where to?",
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.only(left: 15.0, top: 16.0),
+                    )))),
       ]),
       drawer: buildDrawer(context),
+      floatingActionButton: FloatingActionButton(
+          child: IconButton(
+              icon: Icon(Icons.my_location, color: Colors.white),
+              onPressed: null),
+          backgroundColor: Colors.blue),
     );
   }
 
@@ -200,8 +245,10 @@ class _MainScreenState extends State<MainScreen> {
               setState(() {
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
-                Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => DriverMainScreen()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => DriverMainScreen()));
                 _isSwitched = !_isSwitched;
               });
             },
