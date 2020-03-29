@@ -1,9 +1,4 @@
-import 'dart:io';
-
-import 'package:firebase_messaging/firebase_messaging.dart';
-
 import 'package:flutter/material.dart';
-import 'package:zip/firebase_notifications/firebase_notifications.dart';
 import 'package:zip/ui/screens/profile_screen.dart';
 import 'package:zip/ui/screens/root_screen.dart';
 import 'package:zip/ui/screens/sign_in_screen.dart';
@@ -24,16 +19,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    FirebaseNotifications().setUpFirebase(); 
+    // FirebaseNotifications().setUpFirebase(); 
     return MaterialApp(
         title: 'Zip Gameday',
         debugShowCheckedModeBanner: false,
         routes: <String, WidgetBuilder>{
-          '/root': (BuildContext context) => new RootScreen(),
-          '/signin': (BuildContext context) => new SignInScreen(),
-          '/signup': (BuildContext context) => new SignUpScreen(),
-          '/main': (BuildContext context) => new MainScreen(),
-          '/profile' : (BuildContext context) => new ProfileScreen(),
+          '/root': (BuildContext context) =>  RootScreen(),
+          '/signin': (BuildContext context) =>  SignInScreen(),
+          '/signup': (BuildContext context) =>  SignUpScreen(),
+          '/main': (BuildContext context) =>  MainScreen(),
+          '/profile' : (BuildContext context) =>  ProfileScreen(),
         },
         theme: ThemeData(
           primaryColor: Colors.white,
@@ -44,6 +39,6 @@ class MyApp extends StatelessWidget {
   }
 
   Widget _handleCurrentScreen() {
-    return new RootScreen();
+    return RootScreen();
   }
 }
