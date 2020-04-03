@@ -99,6 +99,7 @@ class _MainScreenState extends State<MainScreen> {
           ListTile(
               title: Text('Settings'),
               onTap: () {
+                Navigator.of(context).pop();
                 Navigator.push(context, MaterialPageRoute(builder: (context)=> SettingsScreen()));
               },
             ),
