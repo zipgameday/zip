@@ -221,22 +221,12 @@ class _MainScreenState extends State<MainScreen> {
             },
           ),
           ListTile(
-<<<<<<< HEAD
               title: Text('Settings'),
               onTap: () {
                 Navigator.of(context).pop();
                 Navigator.push(context, MaterialPageRoute(builder: (context)=> SettingsScreen()));
               },
             ),
-=======
-            title: Text('Settings'),
-            onTap: () {
-              Navigator.of(context).pop();
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => SettingsScreen()));
-            },
-          ),
->>>>>>> d8aef297b7df8aceaf791c5ff327a6980fde0f7a
         ],
       ),
     );
