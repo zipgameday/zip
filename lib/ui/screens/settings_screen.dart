@@ -1,19 +1,26 @@
 import "package:flutter/material.dart";
 import 'package:zip/ui/screens/profile_screen.dart';
-
+import 'package:zip/ui/screens/defaultTip_screen.dart';
+import 'package:zip/ui/screens/legalInfo_screen.dart';
 class SettingsScreen extends StatefulWidget {
   _SettingsScreenState createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  VoidCallback onBackPress;
   @override
   void initState() {
+     onBackPress = () {
+      Navigator.of(context).pop();
+    };
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+   return WillPopScope(
+      onWillPop: onBackPress,
+    child: Scaffold(
       //backgroundColor: Colors.grey[70],
       body: Padding(
         padding: const EdgeInsets.only(
@@ -30,11 +37,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Row(
                 children: <Widget>[
                   Padding(
-                      padding: const EdgeInsets.only(left: 6.0),
-                      child: IconButton(
-                          icon: Icon(Icons.arrow_back),
-                          onPressed: () => Navigator.of(context).pop())),
-                  Text("             Settings",
+                    padding: const EdgeInsets.only(left: 6.0),
+                   child: IconButton(
+                   icon: Icon(Icons.arrow_back, color: Colors.black),
+                    onPressed: onBackPress,
+                ),
+                   
+                  
+                  ),
+                  Text("Settings",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           color: Colors.black,
@@ -78,11 +89,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           fontWeight: FontWeight.w300,
                           fontFamily: "OpenSans")),
                   onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => ProfileScreen()));
-                  }),
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> DefaultTipScreen()));
+              }
+              ),
             ),
             SettingRec(
               child: ListTile(
@@ -130,11 +139,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           fontWeight: FontWeight.w300,
                           fontFamily: "OpenSans")),
                   onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => ProfileScreen()));
-                  }),
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> LegalInformationScreen()));
+              }
+              ),
             ),
             SettingRec(
               child: Row(
@@ -209,7 +216,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ),
-    );
+    ),
+   );
   }
 }
 
