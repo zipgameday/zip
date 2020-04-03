@@ -1,34 +1,23 @@
 import "package:flutter/material.dart";
 import 'package:zip/ui/screens/profile_screen.dart';
-import 'package:zip/ui/screens/defaultTip_screen.dart';
-import 'package:zip/ui/screens/legalInfo_screen.dart';
+
 class SettingsScreen extends StatefulWidget {
   _SettingsScreenState createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  VoidCallback onBackPress;
   @override
   void initState() {
-     onBackPress = () {
-      Navigator.of(context).pop();
-    };
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-   return WillPopScope(
-      onWillPop: onBackPress,
-    child: Scaffold(
+    return Scaffold(
       //backgroundColor: Colors.grey[70],
       body: Padding(
         padding: const EdgeInsets.only(
-          top: 23.0,
-          bottom: 20.0,
-          left: 0.0,
-          right: 0.0,
-        ),
+            top: 23.0, bottom: 20.0, left: 0.0, right: 0.0,),
         child: Column(
           mainAxisSize: MainAxisSize.max,
           // mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -38,14 +27,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: <Widget>[
                   Padding(
                     padding: const EdgeInsets.only(left: 6.0),
-                   child: IconButton(
-                   icon: Icon(Icons.arrow_back, color: Colors.black),
-                    onPressed: onBackPress,
-                ),
-                   
-                  
+                    child: Icon(Icons.arrow_back, size: 28.0, color: Colors.black),
                   ),
-                  Text("Settings",
+                  Text("             Settings",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           color: Colors.black,
@@ -54,92 +38,88 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           fontFamily: "OpenSans"))
                 ],
               ),
-            ),
+               ),
             SettingRec(
               child: ListTile(
-                  leading:
-                      Icon(Icons.account_box, size: 28.0, color: Colors.white),
-                  title: const Text("Username",
+                leading: Icon(Icons.account_box, size: 28.0, color: Colors.white),
+                title:const Text("Username",
                       textAlign: TextAlign.left,
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: 24.0,
                           fontWeight: FontWeight.w300,
                           fontFamily: "OpenSans")),
+              
                   onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => ProfileScreen()));
-                  }
-
-                  //child: Icon(Icons.account_box, size: 28.0, color: Colors.white),
-
-                  ),
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> ProfileScreen()));
+              }
+              
+                  
+                    //child: Icon(Icons.account_box, size: 28.0, color: Colors.white),
+                
+              ),
             ),
             SettingRec(
-              child: ListTile(
-                  leading: Icon(Icons.monetization_on,
-                      size: 28.0, color: Colors.white),
-                  title: const Text("Default tip",
+             child: ListTile(
+                leading: Icon(Icons.monetization_on, size: 28.0, color: Colors.white),
+                title:const Text("Default tip",
                       textAlign: TextAlign.left,
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: 24.0,
                           fontWeight: FontWeight.w300,
                           fontFamily: "OpenSans")),
+              
                   onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context)=> DefaultTipScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> ProfileScreen()));
               }
               ),
             ),
             SettingRec(
               child: ListTile(
-                  leading:
-                      Icon(Icons.drive_eta, size: 28.0, color: Colors.white),
-                  title: const Text("Drive with Zip",
+                leading: Icon(Icons.drive_eta, size: 28.0, color: Colors.white),
+                title:const Text("Drive with Zip",
                       textAlign: TextAlign.left,
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: 24.0,
                           fontWeight: FontWeight.w300,
                           fontFamily: "OpenSans")),
+              
                   onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => ProfileScreen()));
-                  }),
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> ProfileScreen()));
+              }
+              ),
             ),
             SettingRec(
-              child: ListTile(
-                  leading: Icon(Icons.lock, size: 28.0, color: Colors.white),
-                  title: const Text("Privacy",
+               child: ListTile(
+                leading: Icon(Icons.lock, size: 28.0, color: Colors.white),
+                title:const Text("Privacy",
                       textAlign: TextAlign.left,
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: 24.0,
                           fontWeight: FontWeight.w300,
                           fontFamily: "OpenSans")),
+              
                   onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => ProfileScreen()));
-                  }),
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> ProfileScreen()));
+              }
+              ),
             ),
             SettingRec(
-              child: ListTile(
-                  leading: Icon(Icons.gavel, size: 28.0, color: Colors.white),
-                  title: const Text("Legal",
+               child: ListTile(
+                leading: Icon(Icons.gavel, size: 28.0, color: Colors.white),
+                title:const Text("Legal",
                       textAlign: TextAlign.left,
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: 24.0,
                           fontWeight: FontWeight.w300,
                           fontFamily: "OpenSans")),
+              
                   onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context)=> LegalInformationScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> ProfileScreen()));
               }
               ),
             ),
@@ -165,8 +145,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: <Widget>[
                   Padding(
                     padding: const EdgeInsets.only(left: 14.0),
-                    child: Icon(Icons.local_phone,
-                        size: 28.0, color: Colors.white),
+                    child: Icon(Icons.local_phone, size: 28.0, color: Colors.white),
                   ),
                   Text("     Phone",
                       textAlign: TextAlign.left,
@@ -183,7 +162,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: <Widget>[
                   Padding(
                     padding: const EdgeInsets.only(left: 14.0),
-                    child: Icon(Icons.home, size: 28.0, color: Colors.white),
+                    child: Icon(Icons.home, size: 28.0, color:Colors.white),
                   ),
                   Text("     Home Address",
                       textAlign: TextAlign.left,
@@ -200,8 +179,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: <Widget>[
                   Padding(
                     padding: const EdgeInsets.only(left: 14.0),
-                    child: Icon(Icons.not_interested,
-                        size: 28.0, color: Colors.white),
+                    child: Icon(Icons.not_interested, size: 28.0, color: Colors.white),
                   ),
                   Text("     Sign Out",
                       textAlign: TextAlign.left,
@@ -216,8 +194,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ),
-    ),
-   );
+    );
   }
 }
 
@@ -226,10 +203,9 @@ class TopRectangle extends StatelessWidget {
   final height;
   final width;
   final child;
-
-  TopRectangle(
-      {this.child, this.color, this.height = 100.0, this.width = 500.0});
-
+  
+  TopRectangle({this.child, this.color, this.height = 100.0, this.width = 500.0});
+    
   build(context) {
     return Container(
       width: width,
@@ -260,6 +236,7 @@ class SettingRec extends StatelessWidget {
       height: height,
       color: Color.fromRGBO(76, 86, 96, 1.0),
       child: child,
+     
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../utils.dart';
 
 class User {
@@ -10,7 +11,9 @@ class User {
   final String profilePictureURL;
   final num credits;
   final String homeAddress;
-  final DateTime lastActivity;
+  DateTime lastActivity;
+  final bool isDriver;
+  final String fcm_token;
 
   User({
     this.uid,
@@ -22,6 +25,8 @@ class User {
     this.homeAddress,
     this.lastActivity,
     this.profilePictureURL,
+    this.isDriver,
+    this.fcm_token
   });
 
   Map<String, Object> toJson() {
@@ -32,23 +37,46 @@ class User {
       'phone': phone == null ? '' : phone,
       'lastActivity': lastActivity,
       'email': email == null ? '' : email,
-      'credits': credits == null ? 0 : credits,
+      'credits': credits == null ? 0.0 : credits,
       'homeAddress': homeAddress == null ? '' : homeAddress,
-      'profilePictureURL': profilePictureURL == null ? '' : profilePictureURL
+      'profilePictureURL': profilePictureURL == null ? '' : profilePictureURL,
+      'isDriver': isDriver == null ? false : isDriver,
+      'fcm_token': fcm_token == null ? '' : fcm_token
     };
   }
 
   factory User.fromJson(Map<String, Object> doc) {
+    num creds = doc['credits'] == null ? 0.0 : doc['credits'];
+
     User user = new User(
       uid: doc['uid'],
-      firstName: doc['firstName'],
-      lastName: doc['lastName'],
+      firstName: doc['firstName'] == null ? '' : doc['firstName'],
+      lastName: doc['lastName'] == null ? '' : doc['lastName'],
       lastActivity: convertStamp(doc['lastActivity']),
-      phone: doc['phone'],
-      email: doc['email'],
-      credits: doc['credits'],
-      homeAddress: doc['homeAddress'],
-      profilePictureURL: doc['profilePictureURL'],
+      phone: doc['phone'] == null ? '' : doc['phone'],
+      email: doc['email'] == null ? '' : doc['email'] ,
+      credits: creds.toDouble(),
+      homeAddress: doc['homeAddress'] == null ? '' : doc['homeAddress'],
+      profilePictureURL: doc['profilePictureURL'] == null ? '' : doc['profilePictureURL'],
+      isDriver: doc['isDriver'] == null ? false : doc['isDriver'],
+      fcm_token: doc['fcm_token'] == null ? '' : doc['fcm_token']
+    );
+    return user;
+  }
+
+  factory User.fromFirebaseUser(FirebaseUser fuser) {
+    User user = new User(
+      uid: fuser.uid,
+      firstName: (fuser.displayName.contains(" ")) ? fuser.displayName.substring(0, fuser.displayName.indexOf(' ')) : fuser.displayName,
+      lastName: (fuser.displayName.contains(" ")) ? fuser.displayName.substring(fuser.displayName.indexOf(' ') + 1, fuser.displayName.length) : '',
+      lastActivity: DateTime.now(),
+      phone: fuser.phoneNumber,
+      email: fuser.email,
+      credits: 0,
+      homeAddress: '',
+      profilePictureURL: fuser.photoUrl,
+      isDriver: false,
+      fcm_token: ''
     );
     return user;
   }
@@ -56,4 +84,9 @@ class User {
   factory User.fromDocument(DocumentSnapshot doc) {
     return User.fromJson(doc.data);
   }
+
+  void updateActivity() {
+    this.lastActivity = DateTime.now();
+  }
+
 }

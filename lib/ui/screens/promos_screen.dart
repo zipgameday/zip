@@ -16,7 +16,6 @@ class PromosScreen extends StatefulWidget {
 
 class _PromosScreenState extends State<PromosScreen> {
   VoidCallback onBackPress;
-  double _credits = 0.0;
   UserService userService = UserService();
   bool _isInAsyncCall = false;
 
@@ -200,6 +199,7 @@ class _PromosScreenState extends State<PromosScreen> {
   );
 
   //Call to database to check credits.
+
   Widget buildProgressBar(BuildContext context) {
     return StreamBuilder<DocumentSnapshot>(
         stream: Firestore.instance
@@ -238,4 +238,5 @@ class _PromosScreenState extends State<PromosScreen> {
       },
     );
   }
+  
 }

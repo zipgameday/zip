@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:zip/models/user.dart';
@@ -25,10 +26,8 @@ class AuthService {
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-
       FirebaseUser user = (await _auth.signInWithCredential(credential)).user;
       updateUserData(user);
-
       return user;
     } catch (error) {
       print(error);
@@ -36,10 +35,48 @@ class AuthService {
     }
   }
 
+  Future<FirebaseUser> facebookSignIn() async {
+    try {
+      FacebookLoginResult facebookLoginResult = await _handleFBSignIn();
+      final accessToken = facebookLoginResult.accessToken.token;
+      if (facebookLoginResult.status == FacebookLoginStatus.loggedIn) {
+        final facebookAuthCred =
+            FacebookAuthProvider.getCredential(accessToken: accessToken);
+        final user =
+            (await _auth.signInWithCredential(facebookAuthCred)).user;
+        updateUserData(user);
+        return user;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      print(error);
+      return null;
+    }
+  }
+
+  Future<FacebookLoginResult> _handleFBSignIn() async {
+      FacebookLogin facebookLogin = FacebookLogin();
+      FacebookLoginResult facebookLoginResult =
+          await facebookLogin.logIn(['email']);
+      switch (facebookLoginResult.status) {
+        case FacebookLoginStatus.cancelledByUser:
+          print("Cancelled");
+          break;
+        case FacebookLoginStatus.error:
+          print("error");
+          break;
+        case FacebookLoginStatus.loggedIn:
+          print("Logged In");
+          break;
+      }
+      return facebookLoginResult;
+    }
+
   Future<String> signIn(String email, String password) async {
     AuthResult result = await _auth.signInWithEmailAndPassword(
         email: email, password: password);
-    updateUserActivity(result.user.uid);
+    updateUserData(result.user);
     return result.user.uid;
   }
 
@@ -59,60 +96,29 @@ class AuthService {
   }
 
   void addUser(User user) async {
-    checkUserExist(user.uid).then((value) {
-      if (!value) {
-        print("user ${user.firstName} ${user.email} added");
-        Firestore.instance
-            .document("users/${user.uid}")
-            .setData(user.toJson());
-      } else {
-        print("user ${user.firstName} ${user.email} exists");
-      }
-    });
-  }
-
-  void updateUserActivity(String uid) {
-    DocumentReference userRef = _db.collection('users').document(uid);
-    userRef.setData({
-      'lastActivity': DateTime.now(),
-    }, merge: true);
-  }
-
-  Future<void> updateUserData(FirebaseUser user) async {
-    DocumentReference userRef = _db.collection('users').document(user.uid);
-
-    checkUserExist(user.uid).then((value) {
-      if (!value) {
-        return userRef.setData({
-          'uid': user.uid,
-          'lastActivity': DateTime.now(),
-          'email': user.email,
-          'firstName': (user.displayName.contains(" ")) ? user.displayName.substring(0, user.displayName.indexOf(' ')) : user.displayName,
-          'lastName': (user.displayName.contains(" ")) ? user.displayName.substring(user.displayName.indexOf(' ') + 1, user.displayName.length) : '',
-          'phone': user.phoneNumber,
-          'profilePictureURL' : user.photoUrl
-        }, merge: true);
-      } else {
-        return userRef.setData({
-          'lastActivity': DateTime.now(),
-        }, merge: true);
-      }
-    });
-  }
-
-  Future<bool> checkUserExist(String userID) async {
-    bool exists = false;
-    try {
-      await _db.document("users/$userID").get().then((doc) {
-        if (doc.exists)
-          exists = true;
-        else
-          exists = false;
-      });
-      return exists;
-    } catch (e) {
-      return false;
+    DocumentSnapshot doc = await _db.collection('users').document(user.uid).get();
+    if (doc.exists) {
+      print("user ${user.firstName} ${user.email} already exists");
+    } else {
+      print("user ${user.firstName} ${user.email} added");
+      Firestore.instance
+          .document("users/${user.uid}")
+          .setData(user.toJson());
     }
+  }
+
+  Future<void> updateUserData(FirebaseUser fuser) async {
+    DocumentReference userRef = _db.collection('users').document(fuser.uid);
+    DocumentSnapshot doc = await userRef.get();
+
+      if (!doc.exists) {
+        User user = User.fromFirebaseUser(fuser);
+        return userRef.setData(user.toJson(), merge: true);
+      } else {
+        User user = User.fromDocument(doc);
+        user.updateActivity();
+        return userRef.setData(user.toJson(), merge: true);
+      }
   }
 
   Stream<User> getUser(String userID) {
@@ -125,6 +131,10 @@ class AuthService {
         return User.fromDocument(doc);
       }).first;
     });
+  }
+
+  Future<void> sendResetPassword(String email) async{
+    return _auth.sendPasswordResetEmail(email: email);
   }
 
   String getExceptionText(Exception e) {

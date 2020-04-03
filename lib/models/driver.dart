@@ -9,6 +9,7 @@ class Driver {
   final String profilePictureURL;
   final DateTime lastActivity;
   final LatLng position;
+  final String fcm_token;
 
   Driver({
     this.uid,
@@ -16,7 +17,8 @@ class Driver {
     this.lastName,
     this.lastActivity,
     this.profilePictureURL,
-    this.position
+    this.position,
+    this.fcm_token
   });
 
   Map<String, Object> toJson() {
@@ -26,7 +28,8 @@ class Driver {
       'lastName': lastName == null ? '' : lastName,
       'lastActivity': lastActivity,
       'profilePictureURL': profilePictureURL == null ? '' : profilePictureURL,
-      'position': position == null ? '' : position
+      'position': position == null ? '' : position,
+      'fcm_token': fcm_token == null ? '' : fcm_token,
     };
   }
 
@@ -37,7 +40,8 @@ class Driver {
       lastName: doc['lastName'],
       lastActivity: convertStamp(doc['lastActivity']),
       profilePictureURL: doc['profilePictureURL'],
-      position: doc['position']
+      position: doc['position'],
+      fcm_token: doc['fcm_token']
     );
     return driver;
   }
