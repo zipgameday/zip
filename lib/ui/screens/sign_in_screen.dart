@@ -116,16 +116,18 @@ class _SignInScreenState extends State<SignInScreen> {
                         textColor: Color.fromRGBO(76, 86, 96, 1.0),
                         fontSize: 18.0,
                         fontWeight: FontWeight.w400,
-                        onPressed: () async{
+                        onPressed: () async {
                           await showDialog(
                             barrierDismissible: false,
                             context: context,
                             builder: (context) {
                               return buildAlertTextField(
-                                  context, "Forgot Password", _forgotPass, _changeBlackVisible);
+                                  context,
+                                  "Forgot Password",
+                                  _forgotPass,
+                                  _changeBlackVisible);
                             },
                           );
-                          
                         },
                         color: Colors.white,
                         splashColor: Colors.grey[100],
@@ -240,10 +242,8 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
- 
-
-  Widget buildAlertTextField(
-      BuildContext context, String title, TextEditingController controller, VoidCallback onPressed) {
+  Widget buildAlertTextField(BuildContext context, String title,
+      TextEditingController controller, VoidCallback onPressed) {
     return AlertDialog(
       contentPadding: EdgeInsets.all(5.0),
       shape: RoundedRectangleBorder(
@@ -295,8 +295,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 onPressed: () async {
                   try {
                     await auth.sendResetPassword(_forgotPass.text);
-                  } catch (e) {
-                  }
+                  } catch (e) {}
                   Navigator.of(context).pop();
                 },
                 splashColor: Colors.black12,
