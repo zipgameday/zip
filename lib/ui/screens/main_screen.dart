@@ -26,8 +26,7 @@ class _MainScreenState extends State<MainScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final UserService userService = UserService();
   final LocationService locationService = LocationService();
-  final String ios_map_key = "AIzaSyC-qi8dEKCFP1q3FKu9Faxkabd-lj8ysJw";
-  final String android_map_key = "AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g";
+  final String map_key = "AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g";
 
   static bool _isSwitched = true;
   static Text driverText = Text("Driver",
@@ -99,9 +98,7 @@ class _MainScreenState extends State<MainScreen> {
                     onTap: () async {
                       Prediction p = await PlacesAutocomplete.show(
                           context: context,
-                          apiKey: Platform.isIOS
-                              ? this.ios_map_key
-                              : this.android_map_key,
+                          apiKey: this.map_key,
                           language: "en",
                           components: [Component(Component.country, "us")],
                           mode: Mode.overlay);
@@ -299,7 +296,7 @@ class MapScreen extends State<TheMap> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      body: _initialPosition == null || pinLocationIcon == null
+      body: _initialPosition == null
           ? Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
