@@ -8,6 +8,7 @@ import 'package:google_maps_webservice/places.dart';
 import 'package:zip/business/auth.dart';
 import 'package:zip/business/drivers.dart';
 import 'package:zip/business/location.dart';
+import 'package:zip/business/notifications.dart';
 import 'package:zip/business/user.dart';
 import 'package:zip/models/user.dart';
 import 'package:zip/models/driver.dart';
@@ -61,6 +62,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    notificationService.registerContext(context);
     return Scaffold(
       key: _scaffoldKey,
       body: Stack(children: <Widget>[
