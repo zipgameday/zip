@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>When in use permissions</string>
+	<string>Zip needs access to your device's location when open.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>always permissions</string>
+	<string>Zip needs access to your device's location when in the background.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Always and in usage permissions</string>
+	<string>Zip needs access to your device's location when in use and in the background.</string>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
