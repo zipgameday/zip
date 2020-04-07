@@ -8,6 +8,7 @@ import 'package:google_maps_webservice/places.dart';
 import 'package:zip/business/auth.dart';
 import 'package:zip/business/drivers.dart';
 import 'package:zip/business/location.dart';
+import 'package:zip/business/notifications.dart';
 import 'package:zip/business/user.dart';
 import 'package:zip/models/user.dart';
 import 'package:zip/models/driver.dart';
@@ -26,6 +27,7 @@ class _MainScreenState extends State<MainScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final UserService userService = UserService();
   final LocationService locationService = LocationService();
+  final NotificationService notificationService = NotificationService();
   final String ios_map_key = "AIzaSyC-qi8dEKCFP1q3FKu9Faxkabd-lj8ysJw";
   final String android_map_key = "AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g";
 
@@ -62,6 +64,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    notificationService.registerContext(context);
     return Scaffold(
       key: _scaffoldKey,
       body: Stack(children: <Widget>[
