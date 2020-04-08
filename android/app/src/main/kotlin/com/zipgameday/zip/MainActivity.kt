@@ -1,4 +1,4 @@
-package com.example.zip
+package com.zipgameday.zip
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity

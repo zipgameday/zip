@@ -6,7 +6,7 @@ class LocationService {
   GeolocationStatus geolocationStatus;
   Position position;
   bool initizalized = false;
-  Geolocator geolocator = Geolocator();
+  final Geolocator geolocator = Geolocator();
   LocationOptions locationOptions = LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 3);
   Stream<Position> positionStream;
   StreamSubscription<Position> positionSub;
@@ -22,16 +22,21 @@ class LocationService {
   Future<bool> setupService({bool reinit = false}) async {
     try {
       if (positionSub != null) positionSub.cancel();
-      position = await Geolocator().getLastKnownPosition(desiredAccuracy: LocationAccuracy.high);
-      positionStream = geolocator.getPositionStream(locationOptions).asBroadcastStream();
-      positionSub = positionStream.listen(
-      (Position position) {
-        if(position != null) {
-          this.position = position;
-        }
-      });
-      print("LocationService initialized at position: ${position.latitude}, ${position.longitude}");
-      return true;
+      GeolocationStatus locationPermissionStatus = await Geolocator().checkGeolocationPermissionStatus();
+      if (locationPermissionStatus == GeolocationStatus.granted) {
+        positionStream = geolocator.getPositionStream(locationOptions).asBroadcastStream();
+        positionSub = positionStream.listen(
+        (Position position) {
+          if(position != null) {
+            this.position = position;
+          }
+        });
+        print("LocationService initialized");
+        return true;
+      } else {
+        print("Location permissions have not been accepted");
+        return false;
+      }
     } catch(e) {
       print("Error initializing LocationService $e");
       return false;

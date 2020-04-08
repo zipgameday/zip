@@ -9,25 +9,25 @@ dependencies:
   flutter:
     sdk: flutter
   url_launcher: ^5.1.2
-  cloud_firestore: 
+  cloud_firestore: ^0.13.4+2
   cloud_functions: ^0.4.2
-  firebase_core: 
-  firebase_auth:
-  firebase_analytics:
-  firebase_messaging: ^5.0.2
+  firebase_core: ^0.4.4+3
+  firebase_auth: ^0.15.5+3
+  firebase_analytics: ^5.0.11
+  firebase_messaging: ^6.0.13
   flutter_local_notifications: ^1.2.0+2
   font_awesome_flutter: 8.4.0
-  google_sign_in: 
+  google_sign_in: ^4.4.0
   flutter_facebook_login: ^3.0.0
-  shared_preferences: 
-  flutter_swiper:
+  shared_preferences: ^0.5.6+3
+  flutter_swiper: ^1.1.6
   google_maps_flutter: ^0.5.11
-  geolocator: ^5.2.0
+  geolocator: ^5.3.1
   location_permissions: ^2.0.4+1
   percent_indicator: ^2.1.1+1
   modal_progress_hud: ^0.1.2
   image_picker: 0.6.3+4
-  firebase_storage: ^3.1.3
+  firebase_storage: ^3.1.5
   flutter_polyline_points: ^0.1.0
 
   geoflutterfire: ^2.1.0

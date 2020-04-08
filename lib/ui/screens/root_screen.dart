@@ -35,7 +35,7 @@ class _RootScreenState extends State<RootScreen> {
       stream: FirebaseAuth.instance.onAuthStateChanged,
       builder: (BuildContext context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return new Container(
+          return new Container( // TODO: create a splashscreen / loading screen
             color: Colors.white,
           );
         } else {
