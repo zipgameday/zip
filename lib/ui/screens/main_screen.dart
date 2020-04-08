@@ -28,6 +28,7 @@ class _MainScreenState extends State<MainScreen> {
   final UserService userService = UserService();
   final LocationService locationService = LocationService();
   final String map_key = "AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g";
+  NotificationService notificationService = NotificationService();
 
   static bool _isSwitched = true;
   static Text driverText = Text("Driver",
