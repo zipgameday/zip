@@ -28,6 +28,8 @@ class _MainScreenState extends State<MainScreen> {
   final UserService userService = UserService();
   final LocationService locationService = LocationService();
   final String map_key = "AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g";
+  final search_controller = TextEditingController();
+  String address = '';
   NotificationService notificationService = NotificationService();
 
   static bool _isSwitched = true;
@@ -98,14 +100,23 @@ class _MainScreenState extends State<MainScreen> {
                 height: MediaQuery.of(context).size.height * 0.07,
                 width: MediaQuery.of(context).size.width * 0.8,
                 child: TextField(
+
                     onTap: () async {
                       Prediction p = await PlacesAutocomplete.show(
                           context: context,
+                          startText: search_controller.text == '' ? '' : search_controller.text,
                           apiKey: this.map_key,
                           language: "en",
                           components: [Component(Component.country, "us")],
-                          mode: Mode.overlay);
+                          mode: Mode.overlay).then((v) {
+                            setState(() {
+                              this.address = v.description;
+                            });
+                            search_controller.text = this.address;
+                            return null;
+                          });
                     },
+                    controller: search_controller,
                     textInputAction: TextInputAction.go,
                     decoration: InputDecoration(
                       icon: Container(
@@ -124,9 +135,8 @@ class _MainScreenState extends State<MainScreen> {
       ]),
       drawer: buildDrawer(context),
       floatingActionButton: FloatingActionButton(
-          child: IconButton(
-              icon: Icon(Icons.my_location, color: Colors.white),
-              onPressed: null),
+          onPressed: null,
+          child: Icon(Icons.my_location),
           backgroundColor: Colors.blue),
     );
   }
@@ -220,12 +230,13 @@ class _MainScreenState extends State<MainScreen> {
             },
           ),
           ListTile(
-              title: Text('Settings'),
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.push(context, MaterialPageRoute(builder: (context)=> SettingsScreen()));
-              },
-            ),
+            title: Text('Settings'),
+            onTap: () {
+              Navigator.of(context).pop();
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => SettingsScreen()));
+            },
+          ),
         ],
       ),
     );
