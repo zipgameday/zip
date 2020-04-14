@@ -30,15 +30,7 @@ class _MainScreenState extends State<MainScreen> {
   final String map_key = "AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g";
   NotificationService notificationService = NotificationService();
 
-  static bool _isSwitched = true;
-  static Text driverText = Text("Driver",
-      softWrap: true,
-      style: TextStyle(
-        color: Colors.white,
-        fontSize: 16.0,
-        fontFamily: "OpenSans",
-        fontWeight: FontWeight.w600,
-      ));
+  static bool _isCustomer = true;
   static Text customerText = Text("Customer",
       softWrap: true,
       style: TextStyle(
@@ -238,7 +230,7 @@ class _MainScreenState extends State<MainScreen> {
         Align(
           alignment: Alignment.topLeft,
           child: Switch(
-            value: _isSwitched,
+            value: _isCustomer,
             onChanged: (value) {
               setState(() {
                 Navigator.of(context).pop();
@@ -247,18 +239,15 @@ class _MainScreenState extends State<MainScreen> {
                     context,
                     MaterialPageRoute(
                         builder: (context) => DriverMainScreen()));
-                _isSwitched = !_isSwitched;
               });
             },
             activeColor: Colors.blue[400],
             activeTrackColor: Colors.blue[100],
-            inactiveThumbColor: Colors.green,
-            inactiveTrackColor: Colors.green[100],
           ),
         ),
         Align(
           alignment: Alignment.topLeft,
-          child: _isSwitched ? customerText : driverText,
+          child: customerText,
         ),
       ],
     );
