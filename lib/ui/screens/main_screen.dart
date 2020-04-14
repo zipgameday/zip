@@ -17,6 +17,7 @@ import 'dart:async';
 import 'package:zip/ui/screens/settings_screen.dart';
 import 'package:zip/ui/screens/promos_screen.dart';
 import 'package:zip/ui/screens/driver_main_screen.dart';
+import 'package:zip/business/location.dart';
 
 class MainScreen extends StatefulWidget {
   MainScreen();
@@ -272,15 +273,15 @@ class TheMap extends StatefulWidget {
 
 class MapScreen extends State<TheMap> {
   final DriverService driverService = DriverService();
-  static LatLng _initialPosition;
+  static Position _position;
   final Set<Marker> _markers = {};
+  LocationService location = LocationService();
   BitmapDescriptor pinLocationIcon;
   Set<LatLng> driverPositions = {
     LatLng(32.62532, -85.46849),
     LatLng(32.62932, -85.46249)
   };
   List<Driver> driversList;
-  static LatLng _lastMapPosition = _initialPosition;
   Completer<GoogleMapController> _controller = Completer();
 
   @override
@@ -292,14 +293,14 @@ class MapScreen extends State<TheMap> {
   }
 
   static final CameraPosition _currentPosition = CameraPosition(
-    target: LatLng(_initialPosition.latitude, _initialPosition.longitude),
+    target: LatLng(_position.latitude, _position.longitude),
     zoom: 14.4746,
   );
 
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      body: _initialPosition == null
+      body: _position == null
           ? Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
@@ -325,12 +326,8 @@ class MapScreen extends State<TheMap> {
   }
 
   void _getUserLocation() async {
-    Position position = await Geolocator()
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    List<Placemark> placemark = await Geolocator()
-        .placemarkFromCoordinates(position.latitude, position.longitude);
     setState(() {
-      _initialPosition = LatLng(position.latitude, position.longitude);
+      _position = location.position;
     });
     driverPositions.forEach((dr) => _markers.add(Marker(
           markerId: MarkerId('testing'),
