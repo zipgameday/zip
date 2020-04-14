@@ -273,7 +273,7 @@ class TheMap extends StatefulWidget {
 
 class MapScreen extends State<TheMap> {
   final DriverService driverService = DriverService();
-  static Position _position;
+  static LatLng _initialPosition;
   final Set<Marker> _markers = {};
   LocationService location = LocationService();
   BitmapDescriptor pinLocationIcon;
@@ -282,6 +282,7 @@ class MapScreen extends State<TheMap> {
     LatLng(32.62932, -85.46249)
   };
   List<Driver> driversList;
+  static LatLng _lastMapPosition = _initialPosition;
   Completer<GoogleMapController> _controller = Completer();
 
   @override
@@ -293,14 +294,14 @@ class MapScreen extends State<TheMap> {
   }
 
   static final CameraPosition _currentPosition = CameraPosition(
-    target: LatLng(_position.latitude, _position.longitude),
+    target: LatLng(_initialPosition.latitude, _initialPosition.longitude),
     zoom: 14.4746,
   );
 
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      body: _position == null
+      body: _initialPosition == null
           ? Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
@@ -326,8 +327,12 @@ class MapScreen extends State<TheMap> {
   }
 
   void _getUserLocation() async {
+    Position position = await Geolocator()
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    List<Placemark> placemark = await Geolocator()
+        .placemarkFromCoordinates(position.latitude, position.longitude);
     setState(() {
-      _position = location.position;
+      _initialPosition = LatLng(position.latitude, position.longitude);
     });
     driverPositions.forEach((dr) => _markers.add(Marker(
           markerId: MarkerId('testing'),

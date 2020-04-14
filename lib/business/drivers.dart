@@ -68,7 +68,7 @@ class DriverService {
         print("Updating geoFirePoint to: ${myLocation.toString()}");
         // TODO: Check for splitting driver and position into seperate documents in firebase as an optimization
         driverReference
-          .updateData({'lastActivity': DateTime.now(), 'geoFirePoint': myLocation});
+          .updateData({'lastActivity': DateTime.now(), 'geoFirePoint': myLocation.data});
       }
     }
   }
@@ -80,7 +80,7 @@ class DriverService {
   void startDriving() {
     driverReference.updateData({
       'lastActivity': DateTime.now(),
-      'geoFirePoint': myLocation,
+      'geoFirePoint': null,
       'isAvailable': true,
       'isWorking': true
     });
