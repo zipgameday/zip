@@ -65,7 +65,7 @@ class DriverService {
       if (driver.isWorking) {
         // TODO: Check for splitting driver and position into seperate documents in firebase as an optimization
         driverReference
-          .updateData({'lastActivity': DateTime.now(), 'geoFirePoint': myLocation.data});
+          .updateData({'lastActivity': DateTime.now(), 'geoFirePoint': myLocation});
       }
     }
   }

@@ -3,10 +3,10 @@ import 'package:geolocator/geolocator.dart';
 
 class LocationService {
   static final LocationService _instance = LocationService._internal();
+  final Geolocator geolocator = Geolocator();
   GeolocationStatus geolocationStatus;
   Position position;
   bool initizalized = false;
-  final Geolocator geolocator = Geolocator();
   LocationOptions locationOptions = LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 3);
   Stream<Position> positionStream;
   StreamSubscription<Position> positionSub;
