@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
 import '../utils.dart';
 
 class Driver {
@@ -8,8 +8,10 @@ class Driver {
   final String lastName;
   final String profilePictureURL;
   final DateTime lastActivity;
-  final LatLng position;
   final String fcm_token;
+  final bool isWorking;
+  final bool isAvailable;
+  final GeoFirePoint geoFirePoint;
 
   Driver({
     this.uid,
@@ -17,8 +19,10 @@ class Driver {
     this.lastName,
     this.lastActivity,
     this.profilePictureURL,
-    this.position,
-    this.fcm_token
+    this.geoFirePoint,
+    this.fcm_token,
+    this.isWorking,
+    this.isAvailable
   });
 
   Map<String, Object> toJson() {
@@ -28,8 +32,10 @@ class Driver {
       'lastName': lastName == null ? '' : lastName,
       'lastActivity': lastActivity,
       'profilePictureURL': profilePictureURL == null ? '' : profilePictureURL,
-      'position': position == null ? '' : position,
+      'geoFirePoint': geoFirePoint,
       'fcm_token': fcm_token == null ? '' : fcm_token,
+      'isWorking': isWorking == null ? false : isWorking,
+      'isAvailable': isAvailable == null ? false : isAvailable
     };
   }
 
@@ -40,8 +46,10 @@ class Driver {
       lastName: doc['lastName'],
       lastActivity: convertStamp(doc['lastActivity']),
       profilePictureURL: doc['profilePictureURL'],
-      position: doc['position'],
-      fcm_token: doc['fcm_token']
+      geoFirePoint: doc['geoFirePoint'],
+      fcm_token: doc['fcm_token'],
+      isWorking: doc['isWorking'],
+      isAvailable: doc['isAvailable'],
     );
     return driver;
   }

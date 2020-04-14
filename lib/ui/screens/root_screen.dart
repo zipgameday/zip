@@ -72,7 +72,8 @@ class _RootScreenState extends State<RootScreen> {
     userService.setupService(uid);
     LocationService locationService = LocationService();
     await locationService.setupService();
-    DriverService();
+    DriverService driverService = DriverService();
+    await driverService.setupService();
     return true;
   }
 }
