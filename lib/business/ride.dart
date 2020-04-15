@@ -42,6 +42,11 @@ class RideService {
     myRide = await rideReference.get();
   }
 
+  /// This function will start the ride process between a customer
+  /// and a driver. It gets the current location of the user and
+  /// passes it into the pickupAddress field of the ride document
+  /// it also gets the destination address and passes it into the
+  /// destinationAddress field.
   void startRide(double lat, double long) async {
     GeoFirePoint destination = GeoFirePoint(lat, long);
     GeoFirePoint pickup = locationService.getCurrentGeoFirePoint();
@@ -67,6 +72,11 @@ class RideService {
     }
   }
 
+/**
+ * This function is for cancelling a ride
+ * This simply updates the database to show the status
+ * of the ride to be canceled
+ */
   void cancelRide() {
     rideReference.updateData({
       'lastActivity': DateTime.now(),
@@ -74,6 +84,9 @@ class RideService {
     });
   }
 
+  /**
+   * This function returns a stream of ride objects from the database.
+   */
   Stream<Ride> getRideStream() {
     return rideReference.snapshots()
         .map((snapshot) {

@@ -24,21 +24,39 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  //this is the global key used for the scaffold
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+
+  ///these are the services that this screen uses.
+  ///you can call these services anywhere in this class.
   final UserService userService = UserService();
   final LocationService locationService = LocationService();
-  final String map_key = "AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g";
-  final search_controller = TextEditingController();
   final RideService rideService = RideService();
+  final NotificationService notificationService = NotificationService();
+
+  ///these are used to manipulate the textfield
+  ///so that you can make sure the text is in sync
+  ///with the prediction.
+  final search_controller = TextEditingController();
   final FocusNode search_node = FocusNode();
+  String address = '';
+
+  ///maps api key used for the prediction
+  final String map_key = "AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g";
+
+  ///these are for translating place details into coordinates
+  ///used for creating a ride in the database
   final GoogleMapsPlaces _places =
       GoogleMapsPlaces(apiKey: 'AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g');
   PlacesDetailsResponse details;
+
+  ///these are used for controlling the bottomsheet
+  ///and other things to do with creating a ride.
   bool checkPrice = false;
   bool lookingForRide = false;
-  String address = '';
-  NotificationService notificationService = NotificationService();
 
+  ///these are for the toggle in the top left part of the
+  ///screen.
   static bool _isCustomer = true;
   static Text customerText = Text("Customer",
       softWrap: true,
@@ -49,6 +67,7 @@ class _MainScreenState extends State<MainScreen> {
         fontWeight: FontWeight.w600,
       ));
 
+  ///this is text for the sidebar
   static Text viewProfileText = Text("View Profile",
       softWrap: true,
       style: TextStyle(
@@ -62,6 +81,11 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
   }
 
+  ///this returns a scaffold that contains the entire mainscreen.
+  ///here you'll find that we call the map (bottom of this file),
+  ///drawer(see buildDrawer function), and create the bottomsheet
+  ///and the button for moving to your location. The textfield with
+  ///the autocomplete functionality is also here.
   @override
   Widget build(BuildContext context) {
     notificationService.registerContext(context);
@@ -147,7 +171,10 @@ class _MainScreenState extends State<MainScreen> {
       floatingActionButton: checkPrice == true
           ? null
           : FloatingActionButton(
-              onPressed: () => MapScreen()._mylocation(locationService),
+              onPressed: () => MapScreen()._mapController.moveCamera(
+                  CameraUpdate.newLatLng(LatLng(
+                      locationService.position.latitude,
+                      locationService.position.longitude))),
               child: Icon(Icons.my_location),
               backgroundColor: Colors.blue),
       bottomSheet: checkPrice == false
@@ -227,11 +254,14 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  ///this will logout the user.
   void _logOut() async {
     AuthService().signOut();
   }
 
-  void _checkPrice() {
+  ///this will pull up the bottomsheet and ask if the user wants
+  ///to move forward with the ride process
+  void _checkPrice() async {
     if (search_controller.text == this.address &&
         search_controller.text.length > 0) {
       setState(() {
@@ -240,6 +270,8 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  ///once the rider clicks confirm it will create a ride and look
+  ///for a driver
   void _lookForRide() async {
     if (lookingForRide && this.details != null) {
       await rideService.startRide(this.details.result.geometry.location.lat,
@@ -247,10 +279,13 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  ///if the rider clicks the cancel button, it will dismiss
+  ///the bottomsheet and cancel the ride.
   void _cancelRide() async {
     await rideService.cancelRide();
   }
 
+  ///this builds the sidebar also known as the drawer.
   Widget buildDrawer(BuildContext context) {
     _buildHeader() {
       return StreamBuilder<DocumentSnapshot>(
@@ -348,6 +383,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  ///this displays user information above the drawer
   Widget buildTopRowOfDrawerHeader(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.max,
@@ -379,25 +415,37 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
+
+///this is the map class for displaying the google map
 class TheMap extends StatefulWidget {
   @override
   State<TheMap> createState() => MapScreen();
 }
 
 class MapScreen extends State<TheMap> {
+
+  ///variables and services needed to  initialize the map
+  ///and location of the user.
   final DriverService driverService = DriverService();
-  static LatLng _initialPosition;
-  final Set<Marker> _markers = {};
   LocationService location = LocationService();
+  static LatLng _initialPosition;
+
+  ///these three objects are used for the markers
+  ///that display nearby drivers.
+  final Set<Marker> _markers = {};
   BitmapDescriptor pinLocationIcon;
   Set<LatLng> driverPositions = {
     LatLng(32.62532, -85.46849),
     LatLng(32.62932, -85.46249)
   };
   List<Driver> driversList;
+
+  ///these two controllers help you manipulate the map
+  ///from different places.
   Completer<GoogleMapController> _controller = Completer();
   GoogleMapController _mapController;
 
+  ///this initalizes the map, user location, and drivers nearby.
   @override
   void initState() {
     super.initState();
@@ -406,6 +454,7 @@ class MapScreen extends State<TheMap> {
     _getNearbyDrivers();
   }
 
+  ///this initializes the cameraposition of the map.
   static final CameraPosition _currentPosition = CameraPosition(
     target: LatLng(_initialPosition.latitude, _initialPosition.longitude),
     zoom: 14.4746,
@@ -434,11 +483,13 @@ class MapScreen extends State<TheMap> {
     );
   }
 
+  ///this sets the icon for the markers
   void _setCustomMapPin() async {
     pinLocationIcon = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration(devicePixelRatio: 4), 'assets/golf_cart.png');
   }
 
+  ///this gets the current users location
   void _getUserLocation() async {
     setState(() {
       _initialPosition =
@@ -449,14 +500,6 @@ class MapScreen extends State<TheMap> {
           position: dr,
           icon: pinLocationIcon,
         )));
-  }
-
-  void _mylocation(LocationService location) {
-    _mapController.animateCamera(CameraUpdate.newCameraPosition(
-      CameraPosition(
-        target: LatLng(location.position.latitude, location.position.longitude),
-      ),
-    ));
   }
 
   void _getNearbyDrivers() {}
