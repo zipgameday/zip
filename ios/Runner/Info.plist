@@ -3,11 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>When in use permissions</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>always permissions</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Always and in usage permissions</string>
+	<string>This app needs access to location when open.</string>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -35,8 +31,11 @@
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Allow Zip to access your photo library</string>
 	<key>NSCameraUsageDescription</key>
+	<string>Allow Zip to access your phone's camera</string>
 	<key>NSMicrophoneUsageDescription</key>
+	<string>Allow Zip to record using your phone's microphone</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

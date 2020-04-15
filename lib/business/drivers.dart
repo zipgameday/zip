@@ -14,13 +14,14 @@ class DriverService {
   LocationService locationService = LocationService();
   StreamSubscription<Position> locationSub;
   CollectionReference driversCollection;
+  DocumentReference driverReference;
   UserService userService = UserService();
   Stream<List<DocumentSnapshot>> nearbyDrivers;
   Stream<User> userStream;
   User user;
   GeoFirePoint myLocation;
-
-
+  Driver driver;
+  StreamSubscription<Driver> driverSub;
 
   factory DriverService() {
     return _instance;
@@ -29,46 +30,84 @@ class DriverService {
   DriverService._internal() {
     print("DriverService Created");
     driversCollection = _firestore.collection('drivers');
-    setupService();
   }
 
-  void setupService() {
-    if(locationSub != null) locationSub.cancel();
+  Future<bool> setupService() async {
+    // Create Driver object in database if doesnt exist
+    driverReference = driversCollection.document(userService.userID);
+    DocumentSnapshot myDriverRef = await driverReference.get();
+    if (!myDriverRef.exists) {
+      driversCollection.document(userService.userID).setData({
+        'uid': userService.userID,
+        'geoFirePoint': null,
+        'lastActivity': DateTime.now(),
+        'isAvailable': false,
+        'isWorking': false
+      });
+    }
+    // Subscribe to the DriverReference and update Driver object: driver
+    this.driverSub =
+        driverReference.snapshots().map((DocumentSnapshot snapshot) {
+      return Driver.fromDocument(snapshot);
+    }).listen((driver) {
+      this.driver = driver;
+    });
+
+    // Subscribe to locationService to update Driver object's position on change.
+    if (locationSub != null) locationSub.cancel();
     locationSub = locationService.positionStream.listen(updatePosition);
     print("DriverService setup");
+    return true;
   }
 
   void updatePosition(Position pos) {
-    this.myLocation = geo.point(latitude: pos.latitude, longitude: pos.longitude);
-  }
-
-  void startDriving() async {
-    DocumentSnapshot myDriverRef = await _firestore.collection('drivers').document(userService.userID).get();
-    if(myDriverRef.exists) {
-      _firestore
-        .collection('drivers').document(userService.userID).updateData(
-          {
-            'lastActivity': DateTime.now(),
-            'position': myLocation.data,
-            'available': true,
-            'working': true
-          });
-    } else {
-      _firestore.collection('drivers').add({
-        'uid': userService.userID,
-        'lastActivity': DateTime.now(),
-        'position': myLocation.data,
-        'available': true,
-        'working': true
-      });
+    if(driver != null) {
+      if (driver.isWorking) {
+        this.myLocation = geo.point(latitude: pos.latitude, longitude: pos.longitude);
+        print("Updating geoFirePoint to: ${myLocation.toString()}");
+        // TODO: Check for splitting driver and position into seperate documents in firebase as an optimization
+        driverReference
+          .updateData({'lastActivity': DateTime.now(), 'geoFirePoint': myLocation.data});
+      }
     }
   }
 
+  bool answerRequest(bool answer, String requestID) {
+    // TODO
+    return false;
+  }
+
+  void startDriving() {
+    driverReference.updateData({
+      'lastActivity': DateTime.now(),
+      'geoFirePoint': null,
+      'isAvailable': true,
+      'isWorking': true
+    });
+  }
+
+  void stopDriving() {
+    driverReference.updateData({
+      'lastActivity': DateTime.now(),
+      'isAvailable': false,
+      'isWorking': false
+    });
+  }
+
+  Stream<Driver> getDriverStream() {
+    return driverReference.snapshots()
+        .map((snapshot) {
+      return Driver.fromDocument(snapshot);
+    });
+  }
+
+  // TODO: Fix with Dillon
   Stream<List<Driver>> getNearbyDrivers() {
-    if(nearbyDrivers == null) {
-      nearbyDrivers = geo.collection(collectionRef: driversCollection)
-        .within(center: myLocation, radius: 50, field: 'position');
+    if (nearbyDrivers == null) {
+      nearbyDrivers = geo
+          .collection(collectionRef: driversCollection)
+          .within(center: myLocation, radius: 50, field: 'geoFirePoint');
     }
-    List<Driver> drivers = new List<Driver>();
+    List<Driver> drivers = List<Driver>();
   }
 }

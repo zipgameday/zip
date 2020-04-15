@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zip/business/drivers.dart';
 import 'package:zip/business/location.dart';
+import 'package:zip/business/ride.dart';
 import 'package:zip/business/user.dart';
 import 'package:zip/ui/screens/welcome_screen.dart';
 import 'package:zip/ui/screens/main_screen.dart';
@@ -17,6 +18,10 @@ enum LoadingState {
   done,
 }
 
+/**
+ * This class sets up all of the services that
+ * the app will use while running.
+ */
 class _RootScreenState extends State<RootScreen> {
   LoadingState loading = LoadingState.none;
 
@@ -35,7 +40,7 @@ class _RootScreenState extends State<RootScreen> {
       stream: FirebaseAuth.instance.onAuthStateChanged,
       builder: (BuildContext context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return new Container(
+          return new Container( // TODO: create a splashscreen / loading screen
             color: Colors.white,
           );
         } else {
@@ -46,7 +51,7 @@ class _RootScreenState extends State<RootScreen> {
                   setState(() {
                     loading = LoadingState.done;
                   });
-                }); 
+                });
                 loading = LoadingState.loading;
                 return _buildWaitingScreen();
                 break;
@@ -72,7 +77,10 @@ class _RootScreenState extends State<RootScreen> {
     userService.setupService(uid);
     LocationService locationService = LocationService();
     await locationService.setupService();
-    DriverService();
+    DriverService driverService = DriverService();
+    await driverService.setupService();
+    RideService rideService = RideService();
+    await rideService.setupService();
     return true;
   }
 }

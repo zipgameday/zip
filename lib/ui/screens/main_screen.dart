@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
@@ -7,12 +8,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:zip/business/auth.dart';
 import 'package:zip/business/drivers.dart';
+import 'package:zip/business/ride.dart';
 import 'package:zip/business/location.dart';
+import 'package:zip/business/notifications.dart';
 import 'package:zip/business/user.dart';
 import 'package:zip/models/user.dart';
 import 'package:zip/models/driver.dart';
-import 'package:geolocator/geolocator.dart';
-import 'dart:async';
 import 'package:zip/ui/screens/settings_screen.dart';
 import 'package:zip/ui/screens/promos_screen.dart';
 import 'package:zip/ui/screens/driver_main_screen.dart';
@@ -23,21 +24,40 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  //this is the global key used for the scaffold
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+
+  ///these are the services that this screen uses.
+  ///you can call these services anywhere in this class.
   final UserService userService = UserService();
   final LocationService locationService = LocationService();
-  final String ios_map_key = "AIzaSyC-qi8dEKCFP1q3FKu9Faxkabd-lj8ysJw";
-  final String android_map_key = "AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g";
+  final RideService rideService = RideService();
+  final NotificationService notificationService = NotificationService();
 
-  static bool _isSwitched = true;
-  static Text driverText = Text("Driver",
-      softWrap: true,
-      style: TextStyle(
-        color: Colors.white,
-        fontSize: 16.0,
-        fontFamily: "OpenSans",
-        fontWeight: FontWeight.w600,
-      ));
+  ///these are used to manipulate the textfield
+  ///so that you can make sure the text is in sync
+  ///with the prediction.
+  final search_controller = TextEditingController();
+  final FocusNode search_node = FocusNode();
+  String address = '';
+
+  ///maps api key used for the prediction
+  final String map_key = "AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g";
+
+  ///these are for translating place details into coordinates
+  ///used for creating a ride in the database
+  final GoogleMapsPlaces _places =
+      GoogleMapsPlaces(apiKey: 'AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g');
+  PlacesDetailsResponse details;
+
+  ///these are used for controlling the bottomsheet
+  ///and other things to do with creating a ride.
+  bool checkPrice = false;
+  bool lookingForRide = false;
+
+  ///these are for the toggle in the top left part of the
+  ///screen.
+  static bool _isCustomer = true;
   static Text customerText = Text("Customer",
       softWrap: true,
       style: TextStyle(
@@ -47,6 +67,7 @@ class _MainScreenState extends State<MainScreen> {
         fontWeight: FontWeight.w600,
       ));
 
+  ///this is text for the sidebar
   static Text viewProfileText = Text("View Profile",
       softWrap: true,
       style: TextStyle(
@@ -60,8 +81,14 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
   }
 
+  ///this returns a scaffold that contains the entire mainscreen.
+  ///here you'll find that we call the map (bottom of this file),
+  ///drawer(see buildDrawer function), and create the bottomsheet
+  ///and the button for moving to your location. The textfield with
+  ///the autocomplete functionality is also here.
   @override
   Widget build(BuildContext context) {
+    notificationService.registerContext(context);
     return Scaffold(
       key: _scaffoldKey,
       body: Stack(children: <Widget>[
@@ -98,15 +125,33 @@ class _MainScreenState extends State<MainScreen> {
                 child: TextField(
                     onTap: () async {
                       Prediction p = await PlacesAutocomplete.show(
-                          context: context,
-                          apiKey: Platform.isIOS
-                              ? this.ios_map_key
-                              : this.android_map_key,
-                          language: "en",
-                          components: [Component(Component.country, "us")],
-                          mode: Mode.overlay);
+                              context: context,
+                              hint: 'Where to?',
+                              startText: search_controller.text == ''
+                                  ? ''
+                                  : search_controller.text,
+                              apiKey: this.map_key,
+                              language: "en",
+                              components: [Component(Component.country, "us")],
+                              mode: Mode.overlay)
+                          .then((v) async {
+                        if (v != null) {
+                          this.address = v.description;
+                          search_controller.text = this.address;
+                          this.details =
+                              await _places.getDetailsByPlaceId(v.placeId);
+                        }
+                        search_node.unfocus();
+                        _checkPrice();
+                        return null;
+                      });
                     },
+                    controller: search_controller,
+                    focusNode: search_node,
                     textInputAction: TextInputAction.go,
+                    onSubmitted: (s) {
+                      _checkPrice();
+                    },
                     decoration: InputDecoration(
                       icon: Container(
                         margin: EdgeInsets.only(left: 20, top: 5),
@@ -123,18 +168,124 @@ class _MainScreenState extends State<MainScreen> {
                     )))),
       ]),
       drawer: buildDrawer(context),
-      floatingActionButton: FloatingActionButton(
-          child: IconButton(
-              icon: Icon(Icons.my_location, color: Colors.white),
-              onPressed: null),
-          backgroundColor: Colors.blue),
+      floatingActionButton: checkPrice == true
+          ? null
+          : FloatingActionButton(
+              onPressed: () => MapScreen()._mapController.moveCamera(
+                  CameraUpdate.newLatLng(LatLng(
+                      locationService.position.latitude,
+                      locationService.position.longitude))),
+              child: Icon(Icons.my_location),
+              backgroundColor: Colors.blue),
+      bottomSheet: checkPrice == false
+          ? null
+          : Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height * 0.25,
+              padding: EdgeInsets.only(
+                left: MediaQuery.of(context).size.width * 0.1,
+                right: MediaQuery.of(context).size.width * 0.1,
+                top: MediaQuery.of(context).size.height * 0.01,
+                bottom: MediaQuery.of(context).size.height * 0.01,
+              ),
+              child: Stack(
+                children: <Widget>[
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: <Widget>[
+                      Center(
+                        child: Text(
+                          this.address,
+                          style: TextStyle(
+                            fontSize: 18.0,
+                            fontFamily: "OpenSans",
+                            fontWeight: FontWeight.w600,
+                          ),
+                          softWrap: true,
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Image.asset('assets/golf_cart.png'),
+                          Text(
+                            'Price: \$10.00',
+                            style: TextStyle(
+                              fontSize: 19.0,
+                              fontFamily: "OpenSans",
+                              fontWeight: FontWeight.w600,
+                            ),
+                            softWrap: true,
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          FloatingActionButton.extended(
+                            backgroundColor: Colors.blue,
+                            onPressed: () {
+                              setState(() {
+                                lookingForRide = true;
+                              });
+                              _lookForRide();
+                            },
+                            label: Text('Confirm'),
+                            icon: Icon(Icons.check),
+                          ),
+                          FloatingActionButton.extended(
+                            backgroundColor: Colors.red,
+                            onPressed: () {
+                              setState(() {
+                                checkPrice = false;
+                              });
+                              _cancelRide();
+                            },
+                            label: Text('Cancel'),
+                            icon: Icon(Icons.cancel),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
     );
   }
 
+  ///this will logout the user.
   void _logOut() async {
     AuthService().signOut();
   }
 
+  ///this will pull up the bottomsheet and ask if the user wants
+  ///to move forward with the ride process
+  void _checkPrice() async {
+    if (search_controller.text == this.address &&
+        search_controller.text.length > 0) {
+      setState(() {
+        checkPrice = true;
+      });
+    }
+  }
+
+  ///once the rider clicks confirm it will create a ride and look
+  ///for a driver
+  void _lookForRide() async {
+    if (lookingForRide && this.details != null) {
+      await rideService.startRide(this.details.result.geometry.location.lat,
+          this.details.result.geometry.location.lng);
+    }
+  }
+
+  ///if the rider clicks the cancel button, it will dismiss
+  ///the bottomsheet and cancel the ride.
+  void _cancelRide() async {
+    await rideService.cancelRide();
+  }
+
+  ///this builds the sidebar also known as the drawer.
   Widget buildDrawer(BuildContext context) {
     _buildHeader() {
       return StreamBuilder<DocumentSnapshot>(
@@ -160,8 +311,7 @@ class _MainScreenState extends State<MainScreen> {
                             width: 130.0,
                             height: 130.0,
                             child: user.profilePictureURL == ''
-                                ? Image.network(
-                                    "gs://zipgameday-6ef28.appspot.com/FCMImages/profile_default.png")
+                                ? Image.asset('assets/profile_default.png')
                                 : Image.network(
                                     user.profilePictureURL,
                                     fit: BoxFit.fill,
@@ -221,17 +371,19 @@ class _MainScreenState extends State<MainScreen> {
             },
           ),
           ListTile(
-              title: Text('Settings'),
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.push(context, MaterialPageRoute(builder: (context)=> SettingsScreen()));
-              },
-            ),
+            title: Text('Settings'),
+            onTap: () {
+              Navigator.of(context).pop();
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => SettingsScreen()));
+            },
+          ),
         ],
       ),
     );
   }
 
+  ///this displays user information above the drawer
   Widget buildTopRowOfDrawerHeader(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.max,
@@ -239,7 +391,7 @@ class _MainScreenState extends State<MainScreen> {
         Align(
           alignment: Alignment.topLeft,
           child: Switch(
-            value: _isSwitched,
+            value: _isCustomer,
             onChanged: (value) {
               setState(() {
                 Navigator.of(context).pop();
@@ -248,32 +400,38 @@ class _MainScreenState extends State<MainScreen> {
                     context,
                     MaterialPageRoute(
                         builder: (context) => DriverMainScreen()));
-                _isSwitched = !_isSwitched;
               });
             },
             activeColor: Colors.blue[400],
             activeTrackColor: Colors.blue[100],
-            inactiveThumbColor: Colors.green,
-            inactiveTrackColor: Colors.green[100],
           ),
         ),
         Align(
           alignment: Alignment.topLeft,
-          child: _isSwitched ? customerText : driverText,
+          child: customerText,
         ),
       ],
     );
   }
 }
 
+
+///this is the map class for displaying the google map
 class TheMap extends StatefulWidget {
   @override
   State<TheMap> createState() => MapScreen();
 }
 
 class MapScreen extends State<TheMap> {
+
+  ///variables and services needed to  initialize the map
+  ///and location of the user.
   final DriverService driverService = DriverService();
+  LocationService location = LocationService();
   static LatLng _initialPosition;
+
+  ///these three objects are used for the markers
+  ///that display nearby drivers.
   final Set<Marker> _markers = {};
   BitmapDescriptor pinLocationIcon;
   Set<LatLng> driverPositions = {
@@ -281,17 +439,22 @@ class MapScreen extends State<TheMap> {
     LatLng(32.62932, -85.46249)
   };
   List<Driver> driversList;
-  static LatLng _lastMapPosition = _initialPosition;
-  Completer<GoogleMapController> _controller = Completer();
 
+  ///these two controllers help you manipulate the map
+  ///from different places.
+  Completer<GoogleMapController> _controller = Completer();
+  GoogleMapController _mapController;
+
+  ///this initalizes the map, user location, and drivers nearby.
   @override
   void initState() {
     super.initState();
-    setCustomMapPin();
+    _setCustomMapPin();
     _getUserLocation();
     _getNearbyDrivers();
   }
 
+  ///this initializes the cameraposition of the map.
   static final CameraPosition _currentPosition = CameraPosition(
     target: LatLng(_initialPosition.latitude, _initialPosition.longitude),
     zoom: 14.4746,
@@ -300,7 +463,7 @@ class MapScreen extends State<TheMap> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      body: _initialPosition == null || pinLocationIcon == null
+      body: _initialPosition == null
           ? Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
@@ -320,18 +483,17 @@ class MapScreen extends State<TheMap> {
     );
   }
 
-  void setCustomMapPin() async {
+  ///this sets the icon for the markers
+  void _setCustomMapPin() async {
     pinLocationIcon = await BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(devicePixelRatio: 4.5), 'assets/golf_cart.png');
+        ImageConfiguration(devicePixelRatio: 4), 'assets/golf_cart.png');
   }
 
+  ///this gets the current users location
   void _getUserLocation() async {
-    Position position = await Geolocator()
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    List<Placemark> placemark = await Geolocator()
-        .placemarkFromCoordinates(position.latitude, position.longitude);
     setState(() {
-      _initialPosition = LatLng(position.latitude, position.longitude);
+      _initialPosition =
+          LatLng(location.position.latitude, location.position.longitude);
     });
     driverPositions.forEach((dr) => _markers.add(Marker(
           markerId: MarkerId('testing'),

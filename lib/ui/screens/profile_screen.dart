@@ -147,8 +147,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           width: 180.0,
                                           height: 180.0,
                                           child: user.profilePictureURL == ''
-                                              ? Image.network(
-                                                  "gs://zipgameday-6ef28.appspot.com/FCMImages/profile_default.png")
+                                              ? Image.asset('assets/profile_default.png')
                                               : Image.network(
                                                   user.profilePictureURL,
                                                   fit: BoxFit.fill,
