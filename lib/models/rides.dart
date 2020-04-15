@@ -1,39 +1,37 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../utils.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
 
 class Ride {
-  final String rid;
+  final String uid;
   final String drid;
-  final String csid;
-  final String destination;
-  final String start;
+  final GeoFirePoint destinationAddress;
+  final GeoFirePoint pickupAddress;
+  final String status;
 
   Ride({
-    this.rid,
+    this.uid,
     this.drid,
-    this.csid,
-    this.destination,
-    this.start,
+    this.destinationAddress,
+    this.pickupAddress,
+    this.status
   });
 
   Map<String, Object> toJson() {
     return {
-      'uid': rid,
+      'uid': uid,
       'drid': drid == null ? '' : drid,
-      'csid': csid == null ? '' : csid,
-      'destination': destination == null ? '' : destination,
-      'start': start == null ? '' : start,
+      'destinationAddress': destinationAddress,
+      'pickupAddress': pickupAddress,
+      'status' : status,
     };
   }
 
   factory Ride.fromJson(Map<String, Object> doc) {
     Ride ride = new Ride(
-      rid: doc['rid'],
+      uid: doc['uid'],
       drid: doc['drid'],
-      csid: doc['csid'],
-      destination: doc['destination'],
-      start: doc['start']
+      destinationAddress: doc['destinationAddress'],
+      pickupAddress: doc['pickupAddress']
     );
     return ride;
   }

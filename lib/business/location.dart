@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 
 class LocationService {
@@ -41,5 +42,9 @@ class LocationService {
       print("Error initializing LocationService $e");
       return false;
     }
+  }
+
+  GeoFirePoint getCurrentGeoFirePoint() {
+    return GeoFirePoint(position.latitude, position.longitude);
   }
 }
