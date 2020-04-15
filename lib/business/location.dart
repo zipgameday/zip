@@ -36,7 +36,7 @@ class LocationService {
         print("LocationService initialized");
         return true;
       } else {
-        PermissionStatus permission = await LocationPermissions().requestPermissions();
+        LocationPermissions().requestPermissions();
         setupService();
         return true;
       }

@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
@@ -7,12 +8,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:zip/business/auth.dart';
 import 'package:zip/business/drivers.dart';
+import 'package:zip/business/ride.dart';
 import 'package:zip/business/location.dart';
 import 'package:zip/business/notifications.dart';
 import 'package:zip/business/user.dart';
 import 'package:zip/models/user.dart';
 import 'package:zip/models/driver.dart';
-import 'dart:async';
 import 'package:zip/ui/screens/settings_screen.dart';
 import 'package:zip/ui/screens/promos_screen.dart';
 import 'package:zip/ui/screens/driver_main_screen.dart';
@@ -28,7 +29,12 @@ class _MainScreenState extends State<MainScreen> {
   final LocationService locationService = LocationService();
   final String map_key = "AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g";
   final search_controller = TextEditingController();
-  bool checkPrice = true;
+  final RideService rideService = RideService();
+  final FocusNode search_node = FocusNode();
+  final GoogleMapsPlaces _places =
+      GoogleMapsPlaces(apiKey: 'AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g');
+  PlacesDetailsResponse details;
+  bool checkPrice = false;
   bool lookingForRide = false;
   String address = '';
   NotificationService notificationService = NotificationService();
@@ -96,6 +102,7 @@ class _MainScreenState extends State<MainScreen> {
                     onTap: () async {
                       Prediction p = await PlacesAutocomplete.show(
                               context: context,
+                              hint: 'Where to?',
                               startText: search_controller.text == ''
                                   ? ''
                                   : search_controller.text,
@@ -103,16 +110,23 @@ class _MainScreenState extends State<MainScreen> {
                               language: "en",
                               components: [Component(Component.country, "us")],
                               mode: Mode.overlay)
-                          .then((v) {
-                        setState(() {
+                          .then((v) async {
+                        if (v != null) {
                           this.address = v.description;
-                        });
-                        search_controller.text = this.address;
+                          search_controller.text = this.address;
+                          this.details = await _places.getDetailsByPlaceId(v.placeId);
+                        }
+                        search_node.unfocus();
+                        _checkPrice();
                         return null;
                       });
                     },
                     controller: search_controller,
+                    focusNode: search_node,
                     textInputAction: TextInputAction.go,
+                    onSubmitted: (s) {
+                      _checkPrice();
+                    },
                     decoration: InputDecoration(
                       icon: Container(
                         margin: EdgeInsets.only(left: 20, top: 5),
@@ -129,26 +143,105 @@ class _MainScreenState extends State<MainScreen> {
                     )))),
       ]),
       drawer: buildDrawer(context),
-      floatingActionButton: FloatingActionButton(
-          onPressed: null,
-          child: Icon(Icons.my_location),
-          backgroundColor: Colors.blue),
+      floatingActionButton: checkPrice == true
+          ? null
+          : FloatingActionButton(
+              onPressed: () => MapScreen()._mylocation(locationService),
+              child: Icon(Icons.my_location),
+              backgroundColor: Colors.blue),
       bottomSheet: checkPrice == false
           ? null
           : Container(
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height * 0.25,
-              child: Center(
-                  child: Stack(children: <Widget>[
-                Text('Price: \$10.00'),
-                Image.asset('assets/golf_cart.png'),
-              ])),
+              padding: EdgeInsets.only(
+                left: MediaQuery.of(context).size.width * 0.1,
+                right: MediaQuery.of(context).size.width * 0.1,
+                top: MediaQuery.of(context).size.height * 0.01,
+                bottom: MediaQuery.of(context).size.height * 0.01,
+              ),
+              child: Stack(
+                children: <Widget>[
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: <Widget>[
+                      Center(
+                        child: Text(
+                          this.address,
+                          style: TextStyle(
+                            fontSize: 18.0,
+                            fontFamily: "OpenSans",
+                            fontWeight: FontWeight.w600,
+                          ),
+                          softWrap: true,
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Image.asset('assets/golf_cart.png'),
+                          Text(
+                            'Price: \$10.00',
+                            style: TextStyle(
+                              fontSize: 19.0,
+                              fontFamily: "OpenSans",
+                              fontWeight: FontWeight.w600,
+                            ),
+                            softWrap: true,
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          FloatingActionButton.extended(
+                            backgroundColor: Colors.blue,
+                            onPressed: () async {
+                              setState(() {
+                                lookingForRide = true;
+                              });
+                            },
+                            label: Text('Confirm'),
+                            icon: Icon(Icons.check),
+                          ),
+                          FloatingActionButton.extended(
+                            backgroundColor: Colors.red,
+                            onPressed: () {
+                              setState(() {
+                                checkPrice = false;
+                              });
+                              _lookForRide();
+                            },
+                            label: Text('Cancel'),
+                            icon: Icon(Icons.cancel),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
     );
   }
 
   void _logOut() async {
     AuthService().signOut();
+  }
+
+  void _checkPrice() {
+    if (search_controller.text == this.address &&
+        search_controller.text.length > 0) {
+      setState(() {
+        checkPrice = true;
+      });
+    }
+  }
+
+  void _lookForRide() async {
+    if (lookingForRide && this.details != null) {
+      rideService.startRide(this.details.result.geometry.location.lat, this.details.result.geometry.location.lng);
+    }
   }
 
   Widget buildDrawer(BuildContext context) {
@@ -296,6 +389,7 @@ class MapScreen extends State<TheMap> {
   };
   List<Driver> driversList;
   Completer<GoogleMapController> _controller = Completer();
+  GoogleMapController _mapController;
 
   @override
   void initState() {
@@ -348,6 +442,14 @@ class MapScreen extends State<TheMap> {
           position: dr,
           icon: pinLocationIcon,
         )));
+  }
+
+  void _mylocation(LocationService location) {
+    _mapController.animateCamera(CameraUpdate.newCameraPosition(
+      CameraPosition(
+        target: LatLng(location.position.latitude, location.position.longitude),
+      ),
+    ));
   }
 
   void _getNearbyDrivers() {}
