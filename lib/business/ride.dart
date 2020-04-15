@@ -51,8 +51,8 @@ class RideService {
         'uid': userService.userID,
         'drid': '',
         'lastActivity': DateTime.now(),
-        // 'pickupAddress': pickup,
-        // 'destinationAddress': destination,
+        'pickupAddress': pickup.data,
+        'destinationAddress': destination.data,
         'status': "SEARCHING"
       });
     } else {
@@ -60,8 +60,8 @@ class RideService {
         'uid': userService.userID,
         'drid': '',
         'lastActivity': DateTime.now(),
-        'pickupAddress': pickup,
-        'destinationAddress': destination,
+        'pickupAddress': pickup.data,
+        'destinationAddress': destination.data,
         'status': "SEARCHING"
       });
     }
