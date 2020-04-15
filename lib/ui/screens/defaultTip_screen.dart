@@ -106,6 +106,11 @@ FlatButton(
                           ),
             Padding(padding: const EdgeInsets.only(top: 30.0,left: 100.0, right:100.0),
             child: TextFormField(
+              decoration: new InputDecoration(
+                enabledBorder: const OutlineInputBorder(
+                   borderSide: const BorderSide(color: Colors.black)
+                ),),
+              maxLength: 4,
               keyboardType: TextInputType.number,
               onChanged: (v) => setState((){tipAmount=v;}),
                validator:(value){
