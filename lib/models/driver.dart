@@ -40,14 +40,15 @@ class Driver {
   }
 
   factory Driver.fromJson(Map<String, Object> doc) {
-    print(doc['geoFirePoint']);
+    Map<String, dynamic> geoMap = doc['geoFirePoint'];
+    GeoPoint point = geoMap['geopoint'];
     Driver driver = new Driver(
       uid: doc['uid'],
       firstName: doc['firstName'],
       lastName: doc['lastName'],
       lastActivity: convertStamp(doc['lastActivity']),
       profilePictureURL: doc['profilePictureURL'],
-      geoFirePoint: doc['geoFirePoint'],
+      geoFirePoint: GeoFirePoint(point.latitude, point.longitude),
       fcm_token: doc['fcm_token'],
       isWorking: doc['isWorking'],
       isAvailable: doc['isAvailable'],
