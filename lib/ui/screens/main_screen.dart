@@ -12,12 +12,10 @@ import 'package:zip/business/notifications.dart';
 import 'package:zip/business/user.dart';
 import 'package:zip/models/user.dart';
 import 'package:zip/models/driver.dart';
-import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 import 'package:zip/ui/screens/settings_screen.dart';
 import 'package:zip/ui/screens/promos_screen.dart';
 import 'package:zip/ui/screens/driver_main_screen.dart';
-import 'package:zip/business/location.dart';
 
 class MainScreen extends StatefulWidget {
   MainScreen();
@@ -30,6 +28,8 @@ class _MainScreenState extends State<MainScreen> {
   final LocationService locationService = LocationService();
   final String map_key = "AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g";
   final search_controller = TextEditingController();
+  bool checkPrice = true;
+  bool lookingForRide = false;
   String address = '';
   NotificationService notificationService = NotificationService();
 
@@ -93,21 +93,23 @@ class _MainScreenState extends State<MainScreen> {
                 height: MediaQuery.of(context).size.height * 0.07,
                 width: MediaQuery.of(context).size.width * 0.8,
                 child: TextField(
-
                     onTap: () async {
                       Prediction p = await PlacesAutocomplete.show(
-                          context: context,
-                          startText: search_controller.text == '' ? '' : search_controller.text,
-                          apiKey: this.map_key,
-                          language: "en",
-                          components: [Component(Component.country, "us")],
-                          mode: Mode.overlay).then((v) {
-                            setState(() {
-                              this.address = v.description;
-                            });
-                            search_controller.text = this.address;
-                            return null;
-                          });
+                              context: context,
+                              startText: search_controller.text == ''
+                                  ? ''
+                                  : search_controller.text,
+                              apiKey: this.map_key,
+                              language: "en",
+                              components: [Component(Component.country, "us")],
+                              mode: Mode.overlay)
+                          .then((v) {
+                        setState(() {
+                          this.address = v.description;
+                        });
+                        search_controller.text = this.address;
+                        return null;
+                      });
                     },
                     controller: search_controller,
                     textInputAction: TextInputAction.go,
@@ -131,6 +133,17 @@ class _MainScreenState extends State<MainScreen> {
           onPressed: null,
           child: Icon(Icons.my_location),
           backgroundColor: Colors.blue),
+      bottomSheet: checkPrice == false
+          ? null
+          : Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height * 0.25,
+              child: Center(
+                  child: Stack(children: <Widget>[
+                Text('Price: \$10.00'),
+                Image.asset('assets/golf_cart.png'),
+              ])),
+            ),
     );
   }
 
@@ -282,13 +295,12 @@ class MapScreen extends State<TheMap> {
     LatLng(32.62932, -85.46249)
   };
   List<Driver> driversList;
-  static LatLng _lastMapPosition = _initialPosition;
   Completer<GoogleMapController> _controller = Completer();
 
   @override
   void initState() {
     super.initState();
-    setCustomMapPin();
+    _setCustomMapPin();
     _getUserLocation();
     _getNearbyDrivers();
   }
@@ -321,18 +333,15 @@ class MapScreen extends State<TheMap> {
     );
   }
 
-  void setCustomMapPin() async {
+  void _setCustomMapPin() async {
     pinLocationIcon = await BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(devicePixelRatio: 4.5), 'assets/golf_cart.png');
+        ImageConfiguration(devicePixelRatio: 4), 'assets/golf_cart.png');
   }
 
   void _getUserLocation() async {
-    Position position = await Geolocator()
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    List<Placemark> placemark = await Geolocator()
-        .placemarkFromCoordinates(position.latitude, position.longitude);
     setState(() {
-      _initialPosition = LatLng(position.latitude, position.longitude);
+      _initialPosition =
+          LatLng(location.position.latitude, location.position.longitude);
     });
     driverPositions.forEach((dr) => _markers.add(Marker(
           markerId: MarkerId('testing'),
