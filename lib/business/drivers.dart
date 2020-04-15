@@ -39,6 +39,7 @@ class DriverService {
     if (!myDriverRef.exists) {
       driversCollection.document(userService.userID).setData({
         'uid': userService.userID,
+        'geoFirePoint': null,
         'lastActivity': DateTime.now(),
         'isAvailable': false,
         'isWorking': false
@@ -60,9 +61,10 @@ class DriverService {
   }
 
   void updatePosition(Position pos) {
-    this.myLocation = geo.point(latitude: pos.latitude, longitude: pos.longitude);
     if(driver != null) {
       if (driver.isWorking) {
+        this.myLocation = geo.point(latitude: pos.latitude, longitude: pos.longitude);
+        print("Updating geoFirePoint to: ${myLocation.toString()}");
         // TODO: Check for splitting driver and position into seperate documents in firebase as an optimization
         driverReference
           .updateData({'lastActivity': DateTime.now(), 'geoFirePoint': myLocation.data});
@@ -71,12 +73,14 @@ class DriverService {
   }
 
   bool answerRequest(bool answer, String requestID) {
+    // TODO
     return false;
   }
 
   void startDriving() {
     driverReference.updateData({
       'lastActivity': DateTime.now(),
+      'geoFirePoint': null,
       'isAvailable': true,
       'isWorking': true
     });
@@ -91,10 +95,7 @@ class DriverService {
   }
 
   Stream<Driver> getDriverStream() {
-    return _firestore
-        .collection('drivers')
-        .document(userService.userID)
-        .snapshots()
+    return driverReference.snapshots()
         .map((snapshot) {
       return Driver.fromDocument(snapshot);
     });

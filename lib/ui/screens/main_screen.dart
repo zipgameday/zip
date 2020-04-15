@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
@@ -7,13 +8,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:zip/business/auth.dart';
 import 'package:zip/business/drivers.dart';
+import 'package:zip/business/ride.dart';
 import 'package:zip/business/location.dart';
 import 'package:zip/business/notifications.dart';
 import 'package:zip/business/user.dart';
 import 'package:zip/models/user.dart';
 import 'package:zip/models/driver.dart';
-import 'package:geolocator/geolocator.dart';
-import 'dart:async';
 import 'package:zip/ui/screens/settings_screen.dart';
 import 'package:zip/ui/screens/promos_screen.dart';
 import 'package:zip/ui/screens/driver_main_screen.dart';
@@ -28,6 +28,15 @@ class _MainScreenState extends State<MainScreen> {
   final UserService userService = UserService();
   final LocationService locationService = LocationService();
   final String map_key = "AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g";
+  final search_controller = TextEditingController();
+  final RideService rideService = RideService();
+  final FocusNode search_node = FocusNode();
+  final GoogleMapsPlaces _places =
+      GoogleMapsPlaces(apiKey: 'AIzaSyDsPh6P9PDFmOqxBiLXpzJ1sW4kx-2LN5g');
+  PlacesDetailsResponse details;
+  bool checkPrice = false;
+  bool lookingForRide = false;
+  String address = '';
   NotificationService notificationService = NotificationService();
 
   static bool _isCustomer = true;
@@ -92,13 +101,33 @@ class _MainScreenState extends State<MainScreen> {
                 child: TextField(
                     onTap: () async {
                       Prediction p = await PlacesAutocomplete.show(
-                          context: context,
-                          apiKey: this.map_key,
-                          language: "en",
-                          components: [Component(Component.country, "us")],
-                          mode: Mode.overlay);
+                              context: context,
+                              hint: 'Where to?',
+                              startText: search_controller.text == ''
+                                  ? ''
+                                  : search_controller.text,
+                              apiKey: this.map_key,
+                              language: "en",
+                              components: [Component(Component.country, "us")],
+                              mode: Mode.overlay)
+                          .then((v) async {
+                        if (v != null) {
+                          this.address = v.description;
+                          search_controller.text = this.address;
+                          this.details =
+                              await _places.getDetailsByPlaceId(v.placeId);
+                        }
+                        search_node.unfocus();
+                        _checkPrice();
+                        return null;
+                      });
                     },
+                    controller: search_controller,
+                    focusNode: search_node,
                     textInputAction: TextInputAction.go,
+                    onSubmitted: (s) {
+                      _checkPrice();
+                    },
                     decoration: InputDecoration(
                       icon: Container(
                         margin: EdgeInsets.only(left: 20, top: 5),
@@ -115,16 +144,111 @@ class _MainScreenState extends State<MainScreen> {
                     )))),
       ]),
       drawer: buildDrawer(context),
-      floatingActionButton: FloatingActionButton(
-          child: IconButton(
-              icon: Icon(Icons.my_location, color: Colors.white),
-              onPressed: null),
-          backgroundColor: Colors.blue),
+      floatingActionButton: checkPrice == true
+          ? null
+          : FloatingActionButton(
+              onPressed: () => MapScreen()._mylocation(locationService),
+              child: Icon(Icons.my_location),
+              backgroundColor: Colors.blue),
+      bottomSheet: checkPrice == false
+          ? null
+          : Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height * 0.25,
+              padding: EdgeInsets.only(
+                left: MediaQuery.of(context).size.width * 0.1,
+                right: MediaQuery.of(context).size.width * 0.1,
+                top: MediaQuery.of(context).size.height * 0.01,
+                bottom: MediaQuery.of(context).size.height * 0.01,
+              ),
+              child: Stack(
+                children: <Widget>[
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: <Widget>[
+                      Center(
+                        child: Text(
+                          this.address,
+                          style: TextStyle(
+                            fontSize: 18.0,
+                            fontFamily: "OpenSans",
+                            fontWeight: FontWeight.w600,
+                          ),
+                          softWrap: true,
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Image.asset('assets/golf_cart.png'),
+                          Text(
+                            'Price: \$10.00',
+                            style: TextStyle(
+                              fontSize: 19.0,
+                              fontFamily: "OpenSans",
+                              fontWeight: FontWeight.w600,
+                            ),
+                            softWrap: true,
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          FloatingActionButton.extended(
+                            backgroundColor: Colors.blue,
+                            onPressed: () {
+                              setState(() {
+                                lookingForRide = true;
+                              });
+                              _lookForRide();
+                            },
+                            label: Text('Confirm'),
+                            icon: Icon(Icons.check),
+                          ),
+                          FloatingActionButton.extended(
+                            backgroundColor: Colors.red,
+                            onPressed: () {
+                              setState(() {
+                                checkPrice = false;
+                              });
+                              _cancelRide();
+                            },
+                            label: Text('Cancel'),
+                            icon: Icon(Icons.cancel),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
     );
   }
 
   void _logOut() async {
     AuthService().signOut();
+  }
+
+  void _checkPrice() {
+    if (search_controller.text == this.address &&
+        search_controller.text.length > 0) {
+      setState(() {
+        checkPrice = true;
+      });
+    }
+  }
+
+  void _lookForRide() async {
+    if (lookingForRide && this.details != null) {
+      await rideService.startRide(this.details.result.geometry.location.lat,
+          this.details.result.geometry.location.lng);
+    }
+  }
+
+  void _cancelRide() async {
+    await rideService.cancelRide();
   }
 
   Widget buildDrawer(BuildContext context) {
@@ -212,12 +336,13 @@ class _MainScreenState extends State<MainScreen> {
             },
           ),
           ListTile(
-              title: Text('Settings'),
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.push(context, MaterialPageRoute(builder: (context)=> SettingsScreen()));
-              },
-            ),
+            title: Text('Settings'),
+            onTap: () {
+              Navigator.of(context).pop();
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => SettingsScreen()));
+            },
+          ),
         ],
       ),
     );
@@ -263,19 +388,20 @@ class MapScreen extends State<TheMap> {
   final DriverService driverService = DriverService();
   static LatLng _initialPosition;
   final Set<Marker> _markers = {};
+  LocationService location = LocationService();
   BitmapDescriptor pinLocationIcon;
   Set<LatLng> driverPositions = {
     LatLng(32.62532, -85.46849),
     LatLng(32.62932, -85.46249)
   };
   List<Driver> driversList;
-  static LatLng _lastMapPosition = _initialPosition;
   Completer<GoogleMapController> _controller = Completer();
+  GoogleMapController _mapController;
 
   @override
   void initState() {
     super.initState();
-    setCustomMapPin();
+    _setCustomMapPin();
     _getUserLocation();
     _getNearbyDrivers();
   }
@@ -308,24 +434,29 @@ class MapScreen extends State<TheMap> {
     );
   }
 
-  void setCustomMapPin() async {
+  void _setCustomMapPin() async {
     pinLocationIcon = await BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(devicePixelRatio: 4.5), 'assets/golf_cart.png');
+        ImageConfiguration(devicePixelRatio: 4), 'assets/golf_cart.png');
   }
 
   void _getUserLocation() async {
-    Position position = await Geolocator()
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    List<Placemark> placemark = await Geolocator()
-        .placemarkFromCoordinates(position.latitude, position.longitude);
     setState(() {
-      _initialPosition = LatLng(position.latitude, position.longitude);
+      _initialPosition =
+          LatLng(location.position.latitude, location.position.longitude);
     });
     driverPositions.forEach((dr) => _markers.add(Marker(
           markerId: MarkerId('testing'),
           position: dr,
           icon: pinLocationIcon,
         )));
+  }
+
+  void _mylocation(LocationService location) {
+    _mapController.animateCamera(CameraUpdate.newCameraPosition(
+      CameraPosition(
+        target: LatLng(location.position.latitude, location.position.longitude),
+      ),
+    ));
   }
 
   void _getNearbyDrivers() {}

@@ -1,13 +1,15 @@
 import 'dart:async';
+import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:location_permissions/location_permissions.dart';
 
 class LocationService {
   static final LocationService _instance = LocationService._internal();
+  final Geolocator geolocator = Geolocator();
   GeolocationStatus geolocationStatus;
   Position position;
   bool initizalized = false;
-  final Geolocator geolocator = Geolocator();
-  LocationOptions locationOptions = LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 3);
+  LocationOptions locationOptions = LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
   Stream<Position> positionStream;
   StreamSubscription<Position> positionSub;
 
@@ -34,12 +36,17 @@ class LocationService {
         print("LocationService initialized");
         return true;
       } else {
-        print("Location permissions have not been accepted");
-        return false;
+        LocationPermissions().requestPermissions();
+        setupService();
+        return true;
       }
     } catch(e) {
       print("Error initializing LocationService $e");
       return false;
     }
+  }
+
+  GeoFirePoint getCurrentGeoFirePoint() {
+    return GeoFirePoint(position.latitude, position.longitude);
   }
 }

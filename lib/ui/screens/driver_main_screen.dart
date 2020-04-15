@@ -48,8 +48,6 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
       builder: (BuildContext context, AsyncSnapshot<Driver> driverObject) {
         if(driverObject.hasData) {
           Driver driver = driverObject.data;
-          print(driver.isWorking);
-          print(driver.uid);
         return Scaffold(
             key: _scaffoldKey,
             body: Stack(
@@ -134,12 +132,12 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
                       ),
                       backgroundColor: Color.fromRGBO(76, 86, 96, 1.0),
                     ),
-                  )); 
+                  ));
         } else {
           return Scaffold(
             body: Container(
               child: Center(
-                child: CircularProgressIndicator() 
+                child: CircularProgressIndicator()
               )
             ),
           );
