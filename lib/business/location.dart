@@ -8,7 +8,7 @@ class LocationService {
   GeolocationStatus geolocationStatus;
   Position position;
   bool initizalized = false;
-  LocationOptions locationOptions = LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 3);
+  LocationOptions locationOptions = LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
   Stream<Position> positionStream;
   StreamSubscription<Position> positionSub;
 

@@ -40,6 +40,7 @@ class Driver {
   }
 
   factory Driver.fromJson(Map<String, Object> doc) {
+    print(doc['geoFirePoint']);
     Driver driver = new Driver(
       uid: doc['uid'],
       firstName: doc['firstName'],
