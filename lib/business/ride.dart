@@ -24,7 +24,7 @@ class RideService {
   // Subscriptions
   StreamSubscription<Position> locationSub;
   Stream<List<DocumentSnapshot>> nearbyDrivers;
-  
+
   Ride ride;
   StreamSubscription<Ride> rideSub;
 
@@ -51,8 +51,8 @@ class RideService {
         'uid': userService.userID,
         'drid': '',
         'lastActivity': DateTime.now(),
-        'pickupAddress': pickup,
-        'destinationAddress': destination,
+        // 'pickupAddress': pickup,
+        // 'destinationAddress': destination,
         'status': "SEARCHING"
       });
     } else {

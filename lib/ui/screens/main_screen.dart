@@ -114,7 +114,8 @@ class _MainScreenState extends State<MainScreen> {
                         if (v != null) {
                           this.address = v.description;
                           search_controller.text = this.address;
-                          this.details = await _places.getDetailsByPlaceId(v.placeId);
+                          this.details =
+                              await _places.getDetailsByPlaceId(v.placeId);
                         }
                         search_node.unfocus();
                         _checkPrice();
@@ -196,10 +197,11 @@ class _MainScreenState extends State<MainScreen> {
                         children: <Widget>[
                           FloatingActionButton.extended(
                             backgroundColor: Colors.blue,
-                            onPressed: () async {
+                            onPressed: () {
                               setState(() {
                                 lookingForRide = true;
                               });
+                              _lookForRide();
                             },
                             label: Text('Confirm'),
                             icon: Icon(Icons.check),
@@ -210,7 +212,7 @@ class _MainScreenState extends State<MainScreen> {
                               setState(() {
                                 checkPrice = false;
                               });
-                              _lookForRide();
+                              _cancelRide();
                             },
                             label: Text('Cancel'),
                             icon: Icon(Icons.cancel),
@@ -240,8 +242,13 @@ class _MainScreenState extends State<MainScreen> {
 
   void _lookForRide() async {
     if (lookingForRide && this.details != null) {
-      rideService.startRide(this.details.result.geometry.location.lat, this.details.result.geometry.location.lng);
+      await rideService.startRide(this.details.result.geometry.location.lat,
+          this.details.result.geometry.location.lng);
     }
+  }
+
+  void _cancelRide() async {
+    await rideService.cancelRide();
   }
 
   Widget buildDrawer(BuildContext context) {

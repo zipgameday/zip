@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zip/business/drivers.dart';
 import 'package:zip/business/location.dart';
+import 'package:zip/business/ride.dart';
 import 'package:zip/business/user.dart';
 import 'package:zip/ui/screens/welcome_screen.dart';
 import 'package:zip/ui/screens/main_screen.dart';
@@ -46,7 +47,7 @@ class _RootScreenState extends State<RootScreen> {
                   setState(() {
                     loading = LoadingState.done;
                   });
-                }); 
+                });
                 loading = LoadingState.loading;
                 return _buildWaitingScreen();
                 break;
@@ -74,6 +75,8 @@ class _RootScreenState extends State<RootScreen> {
     await locationService.setupService();
     DriverService driverService = DriverService();
     await driverService.setupService();
+    RideService rideService = RideService();
+    await rideService.setupService();
     return true;
   }
 }
