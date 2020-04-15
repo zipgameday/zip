@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
+import 'package:location_permissions/location_permissions.dart';
 
 class LocationService {
   static final LocationService _instance = LocationService._internal();
@@ -34,8 +35,9 @@ class LocationService {
         print("LocationService initialized");
         return true;
       } else {
-        print("Location permissions have not been accepted");
-        return false;
+        PermissionStatus permission = await LocationPermissions().requestPermissions();
+        setupService();
+        return true;
       }
     } catch(e) {
       print("Error initializing LocationService $e");
