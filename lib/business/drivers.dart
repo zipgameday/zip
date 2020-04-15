@@ -61,10 +61,9 @@ class DriverService {
   }
 
   void updatePosition(Position pos) {
-    print("Position changed to: ${pos.latitude}, ${pos.longitude}");
-    this.myLocation = geo.point(latitude: pos.latitude, longitude: pos.longitude);
     if(driver != null) {
       if (driver.isWorking) {
+        this.myLocation = geo.point(latitude: pos.latitude, longitude: pos.longitude);
         print("Updating geoFirePoint to: ${myLocation.toString()}");
         // TODO: Check for splitting driver and position into seperate documents in firebase as an optimization
         driverReference
@@ -74,6 +73,7 @@ class DriverService {
   }
 
   bool answerRequest(bool answer, String requestID) {
+    // TODO
     return false;
   }
 
@@ -95,10 +95,7 @@ class DriverService {
   }
 
   Stream<Driver> getDriverStream() {
-    return _firestore
-        .collection('drivers')
-        .document(userService.userID)
-        .snapshots()
+    return driverReference.snapshots()
         .map((snapshot) {
       return Driver.fromDocument(snapshot);
     });
