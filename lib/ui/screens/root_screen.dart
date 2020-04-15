@@ -18,6 +18,10 @@ enum LoadingState {
   done,
 }
 
+/**
+ * This class sets up all of the services that
+ * the app will use while running.
+ */
 class _RootScreenState extends State<RootScreen> {
   LoadingState loading = LoadingState.none;
 
