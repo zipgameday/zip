@@ -50,6 +50,12 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
+/*
+  Uses CustomTextField widget to display text entry areas.
+  Calls _emailLogin to verify information and allow customers into main page.
+  Forgot Password uses Firebase's reset password function, which sends a reset password
+  email to the entered email address.
+*/
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -159,9 +165,6 @@ class _SignInScreenState extends State<SignInScreen> {
                         textColor: Color(0xFF0300F2),
                         fontSize: 18.0,
                         fontWeight: FontWeight.w400,
-                        //I would push the sign up page,
-                        //but the user could hit the back
-                        //button and go to the sign in.
                         onPressed: () {},
                         color: Colors.white,
                         splashColor: Colors.grey[100],
@@ -206,6 +209,10 @@ class _SignInScreenState extends State<SignInScreen> {
     });
   }
 
+  /*
+    Verifies email and password, then navigates to apps main page
+    if information is valid.
+  */
   void _emailLogin(
       {String email, String password, BuildContext context}) async {
     if (Validator.validateEmail(email) &&

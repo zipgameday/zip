@@ -14,6 +14,8 @@ import 'package:zip/ui/screens/main_screen.dart';
 import '../../models/user.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import 'main_screen.dart';
+
 enum DriverBottomSheetStatus { closed, confirmation, searching, ride }
 
 class DriverMainScreen extends StatefulWidget {
@@ -26,7 +28,6 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
   final DriverService driverService = DriverService();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   bool _blackVisible = false;
-  bool _isRequest = false;
   static bool _isDriver = true;
   double screenHeight, screenWidth;
   static Text driverText = Text("Driver",
@@ -45,10 +46,17 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
     driverBottomSheetStatus = DriverBottomSheetStatus.closed;
   }
 
+/*
+  Main build function for Driver Page.
+*/
   @override
   Widget build(BuildContext context) {
+    //MediaQuery used for constant UI on different sized screens.
     screenHeight = MediaQuery.of(context).size.height;
     screenWidth = MediaQuery.of(context).size.width;
+    //Subscribed to Driver with certain ID
+    //This is how we get constant updates from the database.
+    //Needed to change UI based off events happening on Client Side
     return StreamBuilder<Driver>(
       stream: driverService.getDriverStream(),
       builder: (BuildContext context, AsyncSnapshot<Driver> driverObject) {
@@ -60,6 +68,7 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
               key: _scaffoldKey,
               body: Stack(
                 children: <Widget>[
+                  //Uses Enum to determine which view to build.
                   driverBottomSheetStatus == DriverBottomSheetStatus.confirmation
                       ? _buildMapView()
                       : TheMap(),
@@ -77,26 +86,18 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
               ),
               drawer: _buildDrawer(context),
               bottomSheet: _buildBottomSheet(),
-              floatingActionButtonLocation: driver.isWorking
+              //If bottomsheet is closed -> display Drive button
+              floatingActionButtonLocation: driverBottomSheetStatus != DriverBottomSheetStatus.closed
                   ? null
-                  : FloatingActionButtonLocation.centerDocked,
-              floatingActionButton: driver.isWorking
+                  : FloatingActionButtonLocation.centerDocked, 
+              floatingActionButton: driverBottomSheetStatus != DriverBottomSheetStatus.closed
                   ? null
                   : Container(
                       height: screenHeight * 0.25,
                       width: screenWidth * 0.25,
                       child: FloatingActionButton(
                         onPressed: () async {
-                          /* setState(() {
-                            driverBottomSheetStatus = DriverBottomSheetStatus.searching;
-                          }); */
                           await driverService.startDriving(onRequestChange);
-                          /* driverService.requestStream.listen((event) {
-                            print("Found list of requests, going to confirmation screen");
-                            setState(() {
-                              driverBottomSheetStatus = DriverBottomSheetStatus.confirmation;
-                            });
-                          }); */
                         },
                         child: Text(
                           "Drive",
@@ -115,6 +116,10 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
     );
   }
 
+  /*
+    Updated based on bottomSheet enum.
+    Builds basic bottomSheet to alert Driver that system is looking for rider.
+  */
   Widget _buildLookingForRider(BuildContext context) {
     return Container(
         color: Color.fromRGBO(76, 86, 96, 1.0),
@@ -141,9 +146,6 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
                 borderRadius: BorderRadius.circular(8.0),
               ),
               onPressed: () {
-                /* setState(() {
-                  driverBottomSheetStatus = DriverBottomSheetStatus.closed;
-                }); */
                 driverService.stopDriving();
               },
               child: Text("Cancel"),
@@ -152,6 +154,10 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
         ));
   }
 
+
+/*
+  If bottomSheet has found a ride -> show preview of route inside application. 
+*/ 
   Widget _buildMapView() {
     return Container(
       height: screenHeight * 0.75,
@@ -163,6 +169,10 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
     );
   }
 
+/*
+  Controls the state of the bottomSheet.
+  Constantly listens to a request stream to check for changes.
+*/ 
   Widget _buildBottomSheet() {
     return StreamBuilder<Request>(
       stream: driverService.requestStream,
@@ -185,7 +195,9 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
       });
   }
 
-//Build Popup
+/*
+  Build bottomSheet that shows if a rider should be Accepted or Declined.
+*/
   Widget _buildAcceptOrDeclineRider(
       BuildContext context, VoidCallback onPressed) {
       Request currentRequest = driverService.currentRequest;
@@ -241,9 +253,6 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
                     ),
                     onPressed: () async {
                       await driverService.acceptRequest(currentRequest.id);
-                      /* setState(() {
-                        driverBottomSheetStatus = DriverBottomSheetStatus.ride;
-                      }); */
                       await _openRoute(currentRequest.pickupAddress.latitude, currentRequest.pickupAddress.longitude);
                     },
                   ),
@@ -262,9 +271,6 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
                     ),
                     onPressed: () async {
                       await driverService.declineRequest(currentRequest.id);
-                      /* setState(() {
-                        driverBottomSheetStatus = DriverBottomSheetStatus.searching;
-                      }); */
                     },
                   ),
                 ],
@@ -274,18 +280,31 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
         ));
   }
 
+
+/*
+  Changes the background of the screen.
+*/
   void _changeBlackVisible() {
     setState(() {
       _blackVisible = !_blackVisible;
     });
   }
 
+/*
+  Set the status of the bottomSheet.
+*/
   void onRequestChange(DriverBottomSheetStatus status) {
     setState(() {
       driverBottomSheetStatus = status;
     });
   }
 
+/*
+  Builds a drawer that is subscribed to user stream.
+  Drivers and Customers have the same UID.
+  We can use information from Customer snapshot instead of 
+  duplicating data.
+*/
   Widget _buildDrawer(BuildContext context) {
     _buildHeader() {
       return StreamBuilder<DocumentSnapshot>(
@@ -352,6 +371,9 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
     ));
   }
 
+/*
+  Builds Switch to change pages.
+*/
   Widget _buildTopRowOfDriverDrawer(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.max,
@@ -380,6 +402,9 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
     );
   }
 
+/*
+  Open directions to address on either Apple/Google Maps.
+*/ 
   Future<void> _openRoute(double lat, double lng) async {
     try {
       if (Platform.isAndroid) {
@@ -400,6 +425,10 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
   }
 }
 
+
+/*
+  Builds a Google Map centered on users location.
+*/ 
 class TheMap extends StatefulWidget {
   @override
   State<TheMap> createState() => MapScreen();

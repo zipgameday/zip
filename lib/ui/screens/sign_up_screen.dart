@@ -37,6 +37,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
       Navigator.of(context).pop();
     };
 
+/*
+  Custom text widget that can be found in 'widgets' folder
+*/
     _firstnameField = new CustomTextField(
       baseColor: Colors.grey,
       borderColor: Colors.grey[400],
@@ -87,6 +90,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
+/*
+  Shows the basic UI so users can sign up for an account.
+  Once, users enter information and click 'Submit' the widget will
+  call the function _signup which will validate and create a account with
+  the users information.
+*/
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -171,9 +180,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           textColor: Color.fromRGBO(76, 86, 96, 1.0),
                           fontSize: 18.0,
                           fontWeight: FontWeight.w400,
-                          //I would push the sign up page, 
-                          //but the user could hit the back
-                          //button and go to the sign in.
                           onPressed: () {},
                           color: Colors.white,
                           splashColor: Colors.grey[100],
@@ -218,6 +224,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
   }
 
+/*
+  Validates entered information.
+  If information is valid, add a new user.
+  Else, have user enter new information.
+*/
   void _signUp(
       {String firstname,
       String lastname,

@@ -39,6 +39,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     };
   }
 
+/*
+  Looks for Storage task created when uploading photo to
+  Firestorage.
+*/
   @override
   Widget build(BuildContext context) {
     if (_uploadTask != null) {
@@ -93,6 +97,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ));
           });
     } else {
+      //Stream of Customer information.
       return StreamBuilder<DocumentSnapshot>(
           stream: Firestore.instance
               .collection('users')
@@ -310,8 +315,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
   }
 
-//if isEditing = true
-//Need some way of enabling text fields
+  //Builds action buttons for users when editing profile.
   Widget getSaveAndCancel(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.max,
@@ -327,11 +331,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   email: _email.text,
                   phone: _number.text,
                   home: _homeAddress.text);
-              // bool isValid = await Validator.validateStreetAddress(_homeAddress.text);
-              // print(isValid);
+              
               setState(() {
-                //reset all textEditing controllers text information.
-                //_updateTextEditingControllers();
                 _isEditing = false;
               });
             },
@@ -377,9 +378,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-//TextEditingController controls what text is shown
-//Right now, it will just change to whatever you edit.
-//Once User provider is built, we will call that.
+/*
+  Returns a card template.
+*/
   Widget buildCards(
       BuildContext context, Icon prefIcon, TextEditingController controller) {
     return Card(
@@ -411,6 +412,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+/*
+  Allows customer to edit information.
+*/
   Future<void> _editInfo(
       {String firstname,
       String lastname,
@@ -480,7 +484,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-//Need to work on saving files to storage
 //Will check if user has a image for original display
 //If no picture, display default
 //Else, grab photo from URL provided by FireStorage
@@ -574,11 +577,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
   }
 
+
+/*
+  Takes picture from CAMERA using image picture package.
+*/
   Future<void> _takePictureFromPhone() async {
     var img = await ImagePicker.pickImage(source: ImageSource.camera);
     await _uploadPhoto(img);
   }
 
+/*
+  Takes picture from GALLERY using image picture package.
+*/
   Future<void> _getPictureFromGallery() async {
     var img = await ImagePicker.pickImage(source: ImageSource.gallery);
     await _uploadPhoto(img);
