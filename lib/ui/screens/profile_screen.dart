@@ -46,7 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           stream: _uploadTask.events,
           builder: (_, snapshot) {
             var event = snapshot?.data?.snapshot;
-            double progress = event != null
+            double progress = ( event != null )
                 ? event.bytesTransferred / event.totalByteCount
                 : 0;
             return AlertDialog(

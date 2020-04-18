@@ -5,7 +5,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:zip/business/location.dart';
 import 'package:zip/business/user.dart';
 import 'package:zip/models/driver.dart';
+import 'package:zip/models/request.dart';
 import 'package:zip/models/user.dart';
+import 'package:zip/ui/screens/driver_main_screen.dart';
 
 class DriverService {
   static final DriverService _instance = DriverService._internal();
@@ -16,44 +18,39 @@ class DriverService {
   CollectionReference driversCollection;
   DocumentReference driverReference;
   UserService userService = UserService();
-  Stream<List<DocumentSnapshot>> nearbyDrivers;
+  List<Driver> nearbyDriversList;
+  Stream<List<Driver>> nearbyDriversListStream;
   Stream<User> userStream;
   User user;
   GeoFirePoint myLocation;
   Driver driver;
   StreamSubscription<Driver> driverSub;
+  CollectionReference requestCollection;
+  StreamSubscription<Request> requestSub;
+  Stream<Request> requestStream;
+  Request currentRequest;
+  Function callbackFunction;
 
   factory DriverService() {
     return _instance;
   }
 
+  // TODO: Update to use user.isDriver before initializing
+
   DriverService._internal() {
     print("DriverService Created");
     driversCollection = _firestore.collection('drivers');
+    driverReference = driversCollection.document(userService.userID);
+    requestCollection = driverReference.collection('requests');
   }
 
   Future<bool> setupService() async {
-    // Create Driver object in database if doesnt exist
-    driverReference = driversCollection.document(userService.userID);
-    DocumentSnapshot myDriverRef = await driverReference.get();
-    if (!myDriverRef.exists) {
-      driversCollection.document(userService.userID).setData({
-        'uid': userService.userID,
-        'geoFirePoint': null,
-        'lastActivity': DateTime.now(),
-        'isAvailable': false,
-        'isWorking': false
-      });
-    }
-    // Subscribe to the DriverReference and update Driver object: driver
-    this.driverSub =
-        driverReference.snapshots().map((DocumentSnapshot snapshot) {
+    _updateDriverRecord();
+    this.driverSub = driverReference.snapshots().map((DocumentSnapshot snapshot) {
       return Driver.fromDocument(snapshot);
     }).listen((driver) {
       this.driver = driver;
     });
-
-    // Subscribe to locationService to update Driver object's position on change.
     if (locationSub != null) locationSub.cancel();
     locationSub = locationService.positionStream.listen(updatePosition);
     print("DriverService setup");
@@ -72,18 +69,59 @@ class DriverService {
     }
   }
 
-  bool answerRequest(bool answer, String requestID) {
-    // TODO
-    return false;
-  }
-
-  void startDriving() {
+  Future<void> startDriving(Function callback) async {
+    callbackFunction = callback;
+    callbackFunction(DriverBottomSheetStatus.searching);
+    requestStream = requestCollection.snapshots().map((event) => event.documents.map( (e) => Request.fromDocument(e)).toList().elementAt(0)).asBroadcastStream();
     driverReference.updateData({
       'lastActivity': DateTime.now(),
-      'geoFirePoint': null,
+      'geoFirePoint': locationService.getCurrentGeoFirePoint().data,
       'isAvailable': true,
       'isWorking': true
     });
+    requestSub = requestStream.listen((request) {
+      if(request.name != null) onRequestRecieved(request); 
+    });
+    await Future.delayed(const Duration(milliseconds: 500));
+  }
+
+  onRequestRecieved(Request req) {
+    print("Request recieved from ${req.name} recieved, timeout at ${req.timeout}");
+    callbackFunction(DriverBottomSheetStatus.confirmation);
+    currentRequest = req;
+    var seconds = (req.timeout.seconds - Timestamp.now().seconds);
+    Future.delayed(Duration(seconds : seconds)).then((value) {
+      print("Request recieved from ${req.name} timed out");
+      declineRequest(req.id);
+    });
+  }
+
+  Future<void> declineRequest(String requestID) async {
+    print("Declining request: $requestID");
+    DocumentSnapshot requestRef = await requestCollection.document(requestID).get();
+    if(requestRef.exists) {
+      print("Request $requestID exists and will be deleted.");
+      _firestore.collection('rides').document(requestID).updateData({'status' : "SEARCHING"});
+      requestCollection.document(requestID).delete(); 
+    }
+    callbackFunction(DriverBottomSheetStatus.searching);
+    print("Request is already deleted"); // TODO: Delete
+    _firestore.collection('rides').document(requestID).get().then((value) => print("Request status is ${value.data['status']}, should be 'SEARCHING'"));
+  }
+
+  Future<void> acceptRequest(String requestID) async {
+    print("Accepting request: $requestID");
+    DocumentSnapshot requestRef = await _firestore.collection('rides').document(requestID).get();
+    if(requestRef.exists) {
+      print("Request $requestID exists and will be deleted after acceptance.");
+      _firestore.collection('rides').document(requestID).updateData({'status' : "IN_PROGRESS"});
+      driverReference.updateData({
+        'isAvailable' : false,
+        'currentRide' : requestID
+      });
+      requestCollection.document(requestID).delete(); 
+    }
+    callbackFunction(DriverBottomSheetStatus.ride);
   }
 
   void stopDriving() {
@@ -92,6 +130,8 @@ class DriverService {
       'isAvailable': false,
       'isWorking': false
     });
+    if(requestSub != null ) requestSub.cancel();
+    callbackFunction(DriverBottomSheetStatus.closed);
   }
 
   Stream<Driver> getDriverStream() {
@@ -101,13 +141,48 @@ class DriverService {
     });
   }
 
-  // TODO: Fix with Dillon
-  Stream<List<Driver>> getNearbyDrivers() {
-    if (nearbyDrivers == null) {
-      nearbyDrivers = geo
+  // TODO: Audit
+  Stream<List<Driver>> getNearbyDriversStream() {
+    if (nearbyDriversListStream == null) {
+      nearbyDriversListStream = geo
           .collection(collectionRef: driversCollection)
-          .within(center: myLocation, radius: 50, field: 'geoFirePoint');
+          .within(center: myLocation, radius: 50, field: 'geoFirePoint')
+          .map((snapshots) => snapshots.map((e) => Driver.fromDocument(e)).take(10).toList());
     }
-    List<Driver> drivers = List<Driver>();
+    return nearbyDriversListStream;
+  }
+
+  Future<List<Driver>> getNearbyDriversList(double radius) async {
+    GeoFirePoint centerPoint = locationService.getCurrentGeoFirePoint();
+    Query collectionReference = _firestore.collection('drivers').where('isAvailable', isEqualTo: true);
+
+    Stream<List<Driver>> stream = geo.collection(collectionRef: collectionReference)
+      .within(center: centerPoint, radius: radius, field: 'geoFirePoint', strictMode: false)
+      .map((event) => event.map((e) => Driver.fromDocument(e))
+      .take(10).toList());
+
+    List<Driver> nearbyDrivers = await stream.first;
+    nearbyDrivers.forEach((driver) {
+      print("${driver.firstName} is available and in range.");
+    });
+    return nearbyDrivers;
+  }
+
+  _updateDriverRecord() async {
+    DocumentSnapshot myDriverRef = await driverReference.get();
+    if (!myDriverRef.exists) {
+      driversCollection.document(userService.userID).setData({
+        'uid': userService.userID,
+        'firstName' : userService.user.firstName,
+        'lastName' : userService.user.lastName,
+        'profilePictureURL' : userService.user.profilePictureURL,
+        'geoFirePoint': locationService.getCurrentGeoFirePoint().data,
+        'lastActivity': DateTime.now(),
+        'isAvailable': false,
+        'isWorking': false
+      });
+    } else { // TODO: Get rid of once server is constantly checking for abandoned drivers
+      stopDriving();
+    }
   }
 }

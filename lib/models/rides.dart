@@ -30,13 +30,18 @@ class Ride {
     Ride ride = new Ride(
       uid: doc['uid'],
       drid: doc['drid'],
-      destinationAddress: doc['destinationAddress'],
-      pickupAddress: doc['pickupAddress']
+      destinationAddress: extractGeoFirePoint(doc['destinationAddress']),
+      pickupAddress: extractGeoFirePoint(doc['pickupAddress'])
     );
     return ride;
   }
 
   factory Ride.fromDocument(DocumentSnapshot doc) {
     return Ride.fromJson(doc.data);
+  }
+
+  static GeoFirePoint extractGeoFirePoint(Map<String, dynamic> pointMap) {
+    GeoPoint point = pointMap['geopoint'];
+    return GeoFirePoint(point.latitude, point.longitude);
   }
 }

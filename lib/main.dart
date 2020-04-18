@@ -6,6 +6,7 @@ import 'package:zip/ui/screens/sign_up_screen.dart';
 import 'package:zip/ui/screens/main_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// May the torture begin
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences.getInstance().then((prefs) {

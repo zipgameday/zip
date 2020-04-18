@@ -9,8 +9,9 @@
     <application
         android:name="io.flutter.app.FlutterApplication"
         android:label="zip"
-        android:icon="@mipmap/ic_launcher">
-
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
+        
 
         <!-- Maps API key integration -->
         <meta-data android:name="com.google.android.geo.API_KEY"

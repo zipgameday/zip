@@ -6,6 +6,7 @@ import 'package:location_permissions/location_permissions.dart';
 class LocationService {
   static final LocationService _instance = LocationService._internal();
   final Geolocator geolocator = Geolocator();
+  Geoflutterfire geo = Geoflutterfire();
   GeolocationStatus geolocationStatus;
   Position position;
   bool initizalized = false;
@@ -24,22 +25,22 @@ class LocationService {
   Future<bool> setupService({bool reinit = false}) async {
     try {
       if (positionSub != null) positionSub.cancel();
-      GeolocationStatus locationPermissionStatus = await Geolocator().checkGeolocationPermissionStatus();
-      if (locationPermissionStatus == GeolocationStatus.granted) {
-        positionStream = geolocator.getPositionStream(locationOptions).asBroadcastStream();
-        positionSub = positionStream.listen(
-        (Position position) {
-          if(position != null) {
-            this.position = position;
-          }
-        });
-        print("LocationService initialized");
-        return true;
-      } else {
-        LocationPermissions().requestPermissions();
-        setupService();
-        return true;
+      PermissionStatus status = await LocationPermissions().checkPermissionStatus();
+      while (status != PermissionStatus.granted) {
+        status = await LocationPermissions().requestPermissions();
       }
+      while(position != null) {
+        position = await geolocator.getCurrentPosition();
+      }
+      positionStream = geolocator.getPositionStream(locationOptions).asBroadcastStream();
+      positionSub = positionStream.listen(
+      (Position position) {
+        if(position != null) {
+          this.position = position;
+        }
+      });
+      print("LocationService initialized");
+      return true;
     } catch(e) {
       print("Error initializing LocationService $e");
       return false;
@@ -47,6 +48,6 @@ class LocationService {
   }
 
   GeoFirePoint getCurrentGeoFirePoint() {
-    return GeoFirePoint(position.latitude, position.longitude);
+    return geo.point(latitude: position.latitude, longitude: position.longitude);
   }
 }

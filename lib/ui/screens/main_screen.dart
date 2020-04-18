@@ -18,6 +18,12 @@ import 'package:zip/ui/screens/settings_screen.dart';
 import 'package:zip/ui/screens/promos_screen.dart';
 import 'package:zip/ui/screens/driver_main_screen.dart';
 
+enum BottomSheetStatus {
+  closed,
+  confirmation,
+  searching,
+  ride
+}
 class MainScreen extends StatefulWidget {
   MainScreen();
   _MainScreenState createState() => _MainScreenState();
@@ -26,6 +32,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   //this is the global key used for the scaffold
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  double screenHeight, screenWidth;
 
   ///these are the services that this screen uses.
   ///you can call these services anywhere in this class.
@@ -52,8 +59,7 @@ class _MainScreenState extends State<MainScreen> {
 
   ///these are used for controlling the bottomsheet
   ///and other things to do with creating a ride.
-  bool checkPrice = false;
-  bool lookingForRide = false;
+  BottomSheetStatus bottomSheetStatus;
 
   ///these are for the toggle in the top left part of the
   ///screen.
@@ -79,6 +85,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    bottomSheetStatus = BottomSheetStatus.closed;
   }
 
   ///this returns a scaffold that contains the entire mainscreen.
@@ -88,6 +95,8 @@ class _MainScreenState extends State<MainScreen> {
   ///the autocomplete functionality is also here.
   @override
   Widget build(BuildContext context) {
+    screenHeight = MediaQuery.of(context).size.height;
+    screenWidth = MediaQuery.of(context).size.width;
     notificationService.registerContext(context);
     return Scaffold(
       key: _scaffoldKey,
@@ -107,7 +116,7 @@ class _MainScreenState extends State<MainScreen> {
         ),
         Positioned(
             top: 60,
-            left: MediaQuery.of(context).size.width * 0.15,
+            left: screenWidth * 0.15,
             child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),
@@ -120,8 +129,8 @@ class _MainScreenState extends State<MainScreen> {
                         spreadRadius: 3)
                   ],
                 ),
-                height: MediaQuery.of(context).size.height * 0.07,
-                width: MediaQuery.of(context).size.width * 0.8,
+                height: screenHeight * 0.07,
+                width: screenWidth * 0.8,
                 child: TextField(
                     onTap: () async {
                       Prediction p = await PlacesAutocomplete.show(
@@ -168,25 +177,32 @@ class _MainScreenState extends State<MainScreen> {
                     )))),
       ]),
       drawer: buildDrawer(context),
-      floatingActionButton: checkPrice == true
-          ? null
-          : FloatingActionButton(
+      floatingActionButton: Visibility(visible: this.bottomSheetStatus == BottomSheetStatus.closed,
+        child: FloatingActionButton(
               onPressed: () => MapScreen()._mapController.moveCamera(
                   CameraUpdate.newLatLng(LatLng(
                       locationService.position.latitude,
                       locationService.position.longitude))),
               child: Icon(Icons.my_location),
-              backgroundColor: Colors.blue),
-      bottomSheet: checkPrice == false
-          ? null
-          : Container(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height * 0.25,
+              backgroundColor: Colors.blue) ), 
+      bottomSheet: _buildBottomSheet()
+    );
+  }
+
+  Widget _buildBottomSheet() {
+    switch (bottomSheetStatus) {
+      case BottomSheetStatus.closed:
+        return Container(height: 0, width: 0,);
+        break;
+      case BottomSheetStatus.confirmation:
+        return Container(
+              width: screenWidth,
+              height: screenHeight * 0.25,
               padding: EdgeInsets.only(
-                left: MediaQuery.of(context).size.width * 0.1,
-                right: MediaQuery.of(context).size.width * 0.1,
-                top: MediaQuery.of(context).size.height * 0.01,
-                bottom: MediaQuery.of(context).size.height * 0.01,
+                left: screenWidth * 0.1,
+                right: screenWidth * 0.1,
+                top: screenHeight * 0.01,
+                bottom: screenHeight * 0.01,
               ),
               child: Stack(
                 children: <Widget>[
@@ -225,9 +241,6 @@ class _MainScreenState extends State<MainScreen> {
                           FloatingActionButton.extended(
                             backgroundColor: Colors.blue,
                             onPressed: () {
-                              setState(() {
-                                lookingForRide = true;
-                              });
                               _lookForRide();
                             },
                             label: Text('Confirm'),
@@ -236,9 +249,6 @@ class _MainScreenState extends State<MainScreen> {
                           FloatingActionButton.extended(
                             backgroundColor: Colors.red,
                             onPressed: () {
-                              setState(() {
-                                checkPrice = false;
-                              });
                               _cancelRide();
                             },
                             label: Text('Cancel'),
@@ -250,8 +260,76 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                 ],
               ),
+            );
+        break;
+        case BottomSheetStatus.searching:
+          return Container(
+        color: Color.fromRGBO(76, 86, 96, 1.0),
+        height: screenHeight * 0.20,
+        width: screenWidth,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.only(bottom: 20.0),
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+              ),
             ),
-    );
+            Text("Looking for driver",
+                softWrap: true,
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 22.0,
+                    fontFamily: "OpenSans")),
+            RaisedButton(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              onPressed: () {
+                _cancelRide();
+              },
+              child: Text("Cancel"),
+            ),
+          ],
+        ));
+        break;
+      case BottomSheetStatus.ride:
+      return Container(
+        color: Color.fromRGBO(76, 86, 96, 1.0),
+        height: screenHeight * 0.20,
+        width: screenWidth,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.only(bottom: 20.0),
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+              ),
+            ),
+            Text("Driver Found",
+                softWrap: true,
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 22.0,
+                    fontFamily: "OpenSans")),
+            RaisedButton(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              onPressed: () {
+                _cancelRide();
+              },
+              child: Text("Cancel"),
+            ),
+          ],
+        ));
+      break;
+      default:
+    }
   }
 
   ///this will logout the user.
@@ -265,7 +343,7 @@ class _MainScreenState extends State<MainScreen> {
     if (search_controller.text == this.address &&
         search_controller.text.length > 0) {
       setState(() {
-        checkPrice = true;
+        bottomSheetStatus = BottomSheetStatus.confirmation;
       });
     }
   }
@@ -273,16 +351,24 @@ class _MainScreenState extends State<MainScreen> {
   ///once the rider clicks confirm it will create a ride and look
   ///for a driver
   void _lookForRide() async {
-    if (lookingForRide && this.details != null) {
-      await rideService.startRide(this.details.result.geometry.location.lat,
-          this.details.result.geometry.location.lng);
+    setState(() {
+      bottomSheetStatus = BottomSheetStatus.searching;
+    });
+    if (this.details != null) {
+      rideService.startRide(this.details.result.geometry.location.lat,
+        this.details.result.geometry.location.lng);
+    } else {
+      rideService.startRide(37.422030, -122.084199);
     }
   }
 
   ///if the rider clicks the cancel button, it will dismiss
   ///the bottomsheet and cancel the ride.
-  void _cancelRide() async {
-    await rideService.cancelRide();
+  void _cancelRide() {
+    rideService.cancelRide();
+    setState(() {
+      bottomSheetStatus = BottomSheetStatus.closed;
+    });
   }
 
   ///this builds the sidebar also known as the drawer.
@@ -297,7 +383,7 @@ class _MainScreenState extends State<MainScreen> {
             if (snapshot.hasData) {
               User user = User.fromDocument(snapshot.data);
               return Container(
-                  height: MediaQuery.of(context).size.height / 2.8,
+                  height: screenHeight * 0.36,
                   child: DrawerHeader(
                     padding: EdgeInsets.fromLTRB(0.0, 2.0, 0.0, 2.0),
                     decoration:

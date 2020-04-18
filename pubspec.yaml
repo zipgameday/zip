@@ -30,7 +30,7 @@ dependencies:
   firebase_storage: ^3.1.5
   flutter_polyline_points: ^0.1.0
   maps_launcher: ^1.2.0
-
+  webview_flutter: ^0.3.19+9
   geoflutterfire: ^2.1.0
   flutter_google_places: ^0.2.4
   google_maps_webservice: ^0.0.16

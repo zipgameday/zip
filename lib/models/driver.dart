@@ -12,6 +12,7 @@ class Driver {
   final bool isWorking;
   final bool isAvailable;
   final GeoFirePoint geoFirePoint;
+  final String currentRide;
 
   Driver({
     this.uid,
@@ -22,7 +23,8 @@ class Driver {
     this.geoFirePoint,
     this.fcm_token,
     this.isWorking,
-    this.isAvailable
+    this.isAvailable,
+    this.currentRide
   });
 
   Map<String, Object> toJson() {
@@ -35,28 +37,33 @@ class Driver {
       'geoFirePoint': geoFirePoint,
       'fcm_token': fcm_token == null ? '' : fcm_token,
       'isWorking': isWorking == null ? false : isWorking,
-      'isAvailable': isAvailable == null ? false : isAvailable
+      'isAvailable': isAvailable == null ? false : isAvailable,
+      'currentRide': currentRide == null ? '' : currentRide
     };
   }
 
   factory Driver.fromJson(Map<String, Object> doc) {
-    Map<String, dynamic> geoMap = doc['geoFirePoint'];
-    GeoPoint point = geoMap['geopoint'];
     Driver driver = new Driver(
       uid: doc['uid'],
       firstName: doc['firstName'],
       lastName: doc['lastName'],
       lastActivity: convertStamp(doc['lastActivity']),
       profilePictureURL: doc['profilePictureURL'],
-      geoFirePoint: GeoFirePoint(point.latitude, point.longitude),
+      geoFirePoint: extractGeoFirePoint(doc['geoFirePoint']),
       fcm_token: doc['fcm_token'],
       isWorking: doc['isWorking'],
       isAvailable: doc['isAvailable'],
+      currentRide: doc['currentRide']
     );
     return driver;
   }
 
   factory Driver.fromDocument(DocumentSnapshot doc) {
     return Driver.fromJson(doc.data);
+  }
+
+  static GeoFirePoint extractGeoFirePoint(Map<String, dynamic> pointMap) {
+    GeoPoint point = pointMap['geopoint'];
+    return GeoFirePoint(point.latitude, point.longitude);
   }
 }

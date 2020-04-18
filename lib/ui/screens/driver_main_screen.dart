@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:zip/business/drivers.dart';
 import 'package:zip/business/user.dart';
@@ -7,8 +8,13 @@ import 'dart:async';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zip/models/driver.dart';
+import 'package:zip/models/request.dart';
 import 'dart:io';
 import 'package:zip/ui/screens/main_screen.dart';
+import '../../models/user.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+
+enum DriverBottomSheetStatus { closed, confirmation, searching, ride }
 
 class DriverMainScreen extends StatefulWidget {
   DriverMainScreen();
@@ -20,23 +26,23 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
   final DriverService driverService = DriverService();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   bool _blackVisible = false;
+  bool _isRequest = false;
   static bool _isDriver = true;
-  final double lat = 37.3230; // Audit
-  final double lng = -122.0312; // Audit
-  Duration _time = Duration(seconds: 5); // Audit
+  double screenHeight, screenWidth;
   static Text driverText = Text("Driver",
       softWrap: true,
       style: TextStyle(
-        color: Color.fromRGBO(76, 86, 96, 1.0),
+        color: Colors.white,
         fontSize: 16.0,
         fontFamily: "OpenSans",
         fontWeight: FontWeight.w600,
       )); // Audit
-  double screenHeight, screenWidth;
+  DriverBottomSheetStatus driverBottomSheetStatus;
 
   @override
   void initState() {
     super.initState();
+    driverBottomSheetStatus = DriverBottomSheetStatus.closed;
   }
 
   @override
@@ -46,201 +52,226 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
     return StreamBuilder<Driver>(
       stream: driverService.getDriverStream(),
       builder: (BuildContext context, AsyncSnapshot<Driver> driverObject) {
-        if(driverObject.hasData) {
+        if (driverObject.hasData) {
           Driver driver = driverObject.data;
-        return Scaffold(
-            key: _scaffoldKey,
-            body: Stack(
-              children: <Widget>[
-                TheMap(),
-                Positioned(
-                  top: 57,
-                  left: 0,
-                  child: IconButton(
-                      iconSize: 44,
-                      color: Colors.black,
-                      icon: Icon(Icons.menu),
-                      onPressed: () => _scaffoldKey.currentState.openDrawer()),
-                ),
-              ],
-            ),
-            drawer: _buildDrawer(context),
-            bottomSheet: driver.isWorking && driver.isAvailable
-                ? Container(
-                    color: Color.fromRGBO(76, 86, 96, 1.0),
-                    height: screenHeight * 0.20,
-                    width: screenWidth,
-                    //probably
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(bottom: 20.0),
-                          child: CircularProgressIndicator(
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.grey),
-                          ),
+          print(driver.isWorking);
+          print(driver.uid);
+          return Scaffold(
+              key: _scaffoldKey,
+              body: Stack(
+                children: <Widget>[
+                  driverBottomSheetStatus == DriverBottomSheetStatus.confirmation
+                      ? _buildMapView()
+                      : TheMap(),
+                  Positioned(
+                    top: 57,
+                    left: 0,
+                    child: IconButton(
+                        iconSize: 44,
+                        color: Colors.black,
+                        icon: Icon(Icons.menu),
+                        onPressed: () =>
+                            _scaffoldKey.currentState.openDrawer()),
+                  ),
+                ],
+              ),
+              drawer: _buildDrawer(context),
+              bottomSheet: _buildBottomSheet(),
+              floatingActionButtonLocation: driver.isWorking
+                  ? null
+                  : FloatingActionButtonLocation.centerDocked,
+              floatingActionButton: driver.isWorking
+                  ? null
+                  : Container(
+                      height: screenHeight * 0.25,
+                      width: screenWidth * 0.25,
+                      child: FloatingActionButton(
+                        onPressed: () async {
+                          /* setState(() {
+                            driverBottomSheetStatus = DriverBottomSheetStatus.searching;
+                          }); */
+                          await driverService.startDriving(onRequestChange);
+                          /* driverService.requestStream.listen((event) {
+                            print("Found list of requests, going to confirmation screen");
+                            setState(() {
+                              driverBottomSheetStatus = DriverBottomSheetStatus.confirmation;
+                            });
+                          }); */
+                        },
+                        child: Text(
+                          "Drive",
+                          style: TextStyle(color: Colors.white, fontSize: 20.0),
+                          textAlign: TextAlign.center,
                         ),
-                        Text("Looking for rider",
-                            softWrap: true,
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w400,
-                                fontSize: 22.0,
-                                fontFamily: "OpenSans")),
-                        RaisedButton(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          onPressed: () {
-                            driverService.stopDriving();
-                          },
-                          child: Text("Cancel"),
-                        ),
-                      ],
-                    ))
-                : null,
-            floatingActionButtonLocation: driver.isWorking
-                ? null
-                : FloatingActionButtonLocation.centerDocked,
-            floatingActionButton: driver.isWorking
-                ? null
-                : Container(
-                    height: screenHeight * 0.25,
-                    width: screenWidth * 0.25,
-                    child: FloatingActionButton(
-                      onPressed: () {
-                        setState(() {
-                          Timer(_time, () async {
-                            await showDialog(
-                              barrierDismissible: false,
-                              context: context,
-                              builder: (context) {
-                                return _buildAcceptOrDeclineRider(
-                                    context, _changeBlackVisible);
-                              },
-                            );
-                          });
-                        });
-                        driverService.startDriving();
-                        // TODO: Setup listening for requests
-                      },
-                      child: Text(
-                        "Drive",
-                        style: TextStyle(color: Colors.white, fontSize: 20.0),
-                        textAlign: TextAlign.center,
+                        backgroundColor: Color.fromRGBO(76, 86, 96, 1.0),
                       ),
-                      backgroundColor: Color.fromRGBO(76, 86, 96, 1.0),
-                    ),
-                  ));
+                    ));
         } else {
           return Scaffold(
-            body: Container(
-              child: Center(
-                child: CircularProgressIndicator()
-              )
-            ),
+            body: Container(child: Center(child: CircularProgressIndicator())),
           );
         }
       },
     );
   }
 
+  Widget _buildLookingForRider(BuildContext context) {
+    return Container(
+        color: Color.fromRGBO(76, 86, 96, 1.0),
+        height: screenHeight * 0.20,
+        width: screenWidth,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.only(bottom: 20.0),
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+              ),
+            ),
+            Text("Looking for rider",
+                softWrap: true,
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 22.0,
+                    fontFamily: "OpenSans")),
+            RaisedButton(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              onPressed: () {
+                /* setState(() {
+                  driverBottomSheetStatus = DriverBottomSheetStatus.closed;
+                }); */
+                driverService.stopDriving();
+              },
+              child: Text("Cancel"),
+            ),
+          ],
+        ));
+  }
+
+  Widget _buildMapView() {
+    return Container(
+      height: screenHeight * 0.75,
+      width: screenWidth,
+      child: WebView(
+        initialUrl: "https://www.google.com/maps/dir/?api=1&destination=${driverService.currentRequest.pickupAddress.latitude},${driverService.currentRequest.pickupAddress.longitude}&",
+        javascriptMode: JavascriptMode.unrestricted,
+      ),
+    );
+  }
+
+  Widget _buildBottomSheet() {
+    return StreamBuilder<Request>(
+      stream: driverService.requestStream,
+      builder: (BuildContext context, AsyncSnapshot<Request> requestObject) {
+        switch (driverBottomSheetStatus) {
+          case DriverBottomSheetStatus.closed:
+            return Container(width: 0, height: 0);
+            break;
+          case DriverBottomSheetStatus.searching:
+            return _buildLookingForRider(context);
+            break;
+          case DriverBottomSheetStatus.confirmation:
+            return _buildAcceptOrDeclineRider(context, _changeBlackVisible);
+            break;  
+          case DriverBottomSheetStatus.ride:
+            return Container();
+            break;
+          default:
+        }
+      });
+  }
+
 //Build Popup
   Widget _buildAcceptOrDeclineRider(
       BuildContext context, VoidCallback onPressed) {
-    return AlertDialog(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(15.0))),
-        content: Container(
-            height: screenHeight * 0.4,
-            child: Column(
+      Request currentRequest = driverService.currentRequest;
+    return Container(
+        color: Colors.white,
+        height: screenHeight * 0.25,
+        width: screenWidth,
+        child: Column(
+          children: <Widget>[
+            Align(
+              alignment: Alignment.center,
+              child: CircleAvatar(
+                radius: 30.0,
+                child: ClipOval(
+                  child: SizedBox(
+                      width: 30.0,
+                      height: 30.0,
+                      child: Image.asset('assets/golf_cart.png',
+                          fit: BoxFit.fill)),
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: screenHeight * 0.001),
+              child: Text("${currentRequest.name}", style: TextStyle(fontSize: 16.0)),
+            ),
+            ListBody(
+              mainAxis: Axis.vertical,
               children: <Widget>[
-                Align(
-                  alignment: Alignment.center,
-                  child: CircleAvatar(
-                    radius: 60.0,
-                    child: ClipOval(
-                      child: SizedBox(
-                          width: 100.0,
-                          height: 100.0,
-                          child: Image.asset('assets/golf_cart.png',
-                              fit: BoxFit.fill)),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(top: screenHeight * 0.01),
-                  child: Text("John Doe"),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(bottom: screenHeight * 0.01),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text("5.0"),
-                      Icon(Icons.star),
-                    ],
-                  ),
-                ),
-                ListBody(
-                  mainAxis: Axis.vertical,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text("Price: "),
-                        Text("\$20.00"),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text("Distance: "),
-                        Text("10 miles"),
-                      ],
-                    ),
+                    Text("Price: ", style: TextStyle(fontSize: 16.0)),
+                    Text("${currentRequest.price}", style: TextStyle(fontSize: 16.0)),
                   ],
                 ),
-                Padding(
-                  padding: EdgeInsets.only(top: screenHeight * 0.01),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: <Widget>[
-                      FlatButton(
-                        color: Color.fromRGBO(76, 86, 96, 1.0),
-                        shape: RoundedRectangleBorder(),
-                        child: Text(
-                          "Accept",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        onPressed: () async {
-                          await _openRoute(lat, lng);
-                          Navigator.of(context).pop();
-                          driverService.answerRequest(true, "");
-                        },
-                      ),
-                      FlatButton(
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                            side: BorderSide(color: Colors.black38)),
-                        child: Text(
-                          "Decline",
-                          style:
-                              TextStyle(color: Color.fromRGBO(76, 86, 96, 1.0)),
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            Navigator.of(context).pop();
-                          });
-                          driverService.answerRequest(false, "");
-                        },
-                      ),
-                    ],
-                  ),
-                ),
               ],
-            )));
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: screenHeight * 0.001),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  RaisedButton.icon(
+                    icon: Icon(Icons.check, color: Colors.white),
+                    elevation: 1.0,
+                    color: Color.fromRGBO(76, 86, 96, 1.0),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0)),
+                    label: Text(
+                      "Accept",
+                      style: TextStyle(color: Colors.white, fontSize: 16.0),
+                    ),
+                    onPressed: () async {
+                      await driverService.acceptRequest(currentRequest.id);
+                      /* setState(() {
+                        driverBottomSheetStatus = DriverBottomSheetStatus.ride;
+                      }); */
+                      await _openRoute(currentRequest.pickupAddress.latitude, currentRequest.pickupAddress.longitude);
+                    },
+                  ),
+                  RaisedButton.icon(
+                    icon: Icon(Icons.cancel),
+                    elevation: 1.0,
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        side: BorderSide(color: Colors.black38),
+                        borderRadius: BorderRadius.circular(12.0)),
+                    label: Text(
+                      "Decline",
+                      style: TextStyle(
+                          color: Color.fromRGBO(76, 86, 96, 1.0),
+                          fontSize: 16.0),
+                    ),
+                    onPressed: () async {
+                      await driverService.declineRequest(currentRequest.id);
+                      /* setState(() {
+                        driverBottomSheetStatus = DriverBottomSheetStatus.searching;
+                      }); */
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ));
   }
 
   void _changeBlackVisible() {
@@ -249,13 +280,74 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
     });
   }
 
+  void onRequestChange(DriverBottomSheetStatus status) {
+    setState(() {
+      driverBottomSheetStatus = status;
+    });
+  }
+
   Widget _buildDrawer(BuildContext context) {
-    // _buildHeader() {}
+    _buildHeader() {
+      return StreamBuilder<DocumentSnapshot>(
+          stream: Firestore.instance
+              .collection('users')
+              .document(userService.userID)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              User user = User.fromDocument(snapshot.data);
+              return Container(
+                  height: MediaQuery.of(context).size.height / 2.8,
+                  child: DrawerHeader(
+                    padding: EdgeInsets.fromLTRB(0.0, 2.0, 0.0, 2.0),
+                    decoration:
+                        BoxDecoration(color: Color.fromRGBO(76, 86, 96, 1.0)),
+                    child: Column(children: [
+                      _buildTopRowOfDriverDrawer(context),
+                      CircleAvatar(
+                        radius: 60.0,
+                        child: ClipOval(
+                          child: SizedBox(
+                            width: 130.0,
+                            height: 130.0,
+                            child: user.profilePictureURL == ''
+                                ? Image.asset('assets/profile_default.png')
+                                : Image.network(
+                                    user.profilePictureURL,
+                                    fit: BoxFit.fill,
+                                  ),
+                          ),
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Padding(
+                              padding: EdgeInsets.only(top: 10.0),
+                              child: Text(
+                                '${user.firstName} ${user.lastName}',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16.0,
+                                  fontFamily: "OpenSans",
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              )),
+                        ],
+                      )
+                    ]),
+                  ));
+            } else {
+              return DrawerHeader(child: Column());
+            }
+          });
+    }
+
     return Drawer(
         child: ListView(
       padding: EdgeInsets.zero,
       children: <Widget>[
-        _buildTopRowOfDriverDrawer(context),
+        _buildHeader(),
       ],
     ));
   }
