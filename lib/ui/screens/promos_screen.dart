@@ -35,6 +35,10 @@ class _PromosScreenState extends State<PromosScreen> {
     };
   }
 
+/*
+  Allows customers to apply promotion codes.
+  Uses Firebase Cloud Function to do computation.
+*/ 
   void _applyCode() async {
     setState(() {
       _isInAsyncCall = true;
@@ -63,6 +67,12 @@ class _PromosScreenState extends State<PromosScreen> {
     });
   }
 
+/*
+  Main build function.
+  Displays Customer promotion credit information.
+  If a user has entered a promotion, UI will show loading screen
+  while waiting for result.
+*/
   @override
   Widget build(BuildContext context) {
     return ModalProgressHUD(
@@ -198,8 +208,11 @@ class _PromosScreenState extends State<PromosScreen> {
     ),
   );
 
-  //Call to database to check credits.
 
+/*
+  Builds Progress indicatior.
+  Let's users know how many credits they currently have.
+*/
   Widget buildProgressBar(BuildContext context) {
     return StreamBuilder<DocumentSnapshot>(
         stream: Firestore.instance
