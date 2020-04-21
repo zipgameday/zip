@@ -22,8 +22,6 @@ export const applyPromoCode = functions.https.onCall(async (data, context) => {
       // Get user's data and update credits with
       var userRef = await admin.firestore().collection("users").doc(uid).get();
       var user = userRef.data();
-      console.log(promo.credits);
-      console.log(promo.message);
       if (promo.expiration.toDate() > new Date()) {
         // Compare expiration date
         if (!promo.redeemed_users.includes(uid)) {

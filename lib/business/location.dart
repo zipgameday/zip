@@ -26,12 +26,15 @@ class LocationService {
     try {
       if (positionSub != null) positionSub.cancel();
       PermissionStatus status = await LocationPermissions().checkPermissionStatus();
+      // Get permission from user
       while (status != PermissionStatus.granted) {
         status = await LocationPermissions().requestPermissions();
       }
+      // Ensure position is not null after setup
       while(position != null) {
         position = await geolocator.getCurrentPosition();
       }
+      // Create position stream and subscribe to keep service's position up to date.
       positionStream = geolocator.getPositionStream(locationOptions).asBroadcastStream();
       positionSub = positionStream.listen(
       (Position position) {

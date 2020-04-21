@@ -80,7 +80,6 @@ class _RootScreenState extends State<RootScreen> {
     DriverService driverService = DriverService();
     await driverService.setupService();
     RideService rideService = RideService();
-    await rideService.setupService();
     return true;
   }
 }

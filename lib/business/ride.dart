@@ -1,24 +1,27 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:zip/business/drivers.dart';
 import 'package:zip/business/location.dart';
 import 'package:zip/business/user.dart';
 import 'package:zip/models/driver.dart';
 import 'package:zip/models/request.dart';
 import 'package:zip/models/rides.dart';
+import 'package:zip/ui/screens/main_screen.dart';
 
 class RideService {
   static final RideService _instance = RideService._internal();
+  final bool showDebugPrints = true;
   final Firestore _firestore = Firestore.instance;
-  CollectionReference rideCollection;
   DocumentReference rideReference;
-  DocumentSnapshot myRide;
   bool isSearchingForRide;
   bool goToNextDriver;
   Stream<Ride> rideStream;
   StreamSubscription rideSubscription;
+  Ride ride;
+  GeoFirePoint destination;
+  GeoFirePoint pickup;
+  Function updateUI;
 
   // Services
   Geoflutterfire geo = Geoflutterfire();
@@ -27,11 +30,7 @@ class RideService {
   UserService userService = UserService();
 
   // Subscriptions
-  StreamSubscription<Position> locationSub;
   Stream<List<DocumentSnapshot>> nearbyDrivers;
-
-  Ride ride;
-  StreamSubscription<Ride> rideSub;
 
   factory RideService() {
     return _instance;
@@ -39,12 +38,7 @@ class RideService {
 
   RideService._internal() {
     print("RideService Created");
-    rideCollection = _firestore.collection('rides');
     rideReference = _firestore.collection('rides').document(userService.userID);
-  }
-
-  Future<bool> setupService() async {
-    myRide = await rideReference.get();
   }
 
   /// This function will start the ride process between a customer
@@ -52,107 +46,59 @@ class RideService {
   /// passes it into the pickupAddress field of the ride document
   /// it also gets the destination address and passes it into the
   /// destinationAddress field.
-  void startRide(double lat, double long) async {
-    GeoFirePoint destination = geo.point(latitude: lat, longitude: long);
-    GeoFirePoint pickup = locationService.getCurrentGeoFirePoint();
-    if (!myRide.exists) {
-      await rideReference.setData({
-        'uid': userService.userID,
-        'drid': '',
-        'lastActivity': DateTime.now(),
-        'pickupAddress': pickup.data,
-        'destinationAddress': destination.data,
-        'status': "SEARCHING"
-      });
-    } else {
-      await rideReference.updateData({
-        'uid': userService.userID,
-        'drid': '',
-        'lastActivity': DateTime.now(),
-        'pickupAddress': pickup.data,
-        'destinationAddress': destination.data,
-        'status': "SEARCHING"
-      });
-    }
-
-    Stream<Ride> rideStream = rideReference.snapshots().map((snapshot) => Ride.fromDocument(snapshot)).asBroadcastStream();
-    rideSubscription = rideStream.listen((event) {
-      if(event.status != null) {
-        switch (event.status) {
-          case 'CANCELED':
-            isSearchingForRide = false;
-            print("Ride is canceled");
-            break;
-          case 'IN_PROGRESS':
-            isSearchingForRide = false;
-            print("Ride is now IN_PROGRESS");
-            break;
-          case 'SEARCHING':
-            goToNextDriver = true;
-            print("Ride is searching");
-            break;
-          default:
-        }
-        ride = event;
-        print("Updated ride status from ${ride.status} to ${event.status}");
-      }
-    });
-
-    isSearchingForRide = true;
-    goToNextDriver = false;
-    // Find nearest Drivers and start sending requests
+  void startRide(double lat, double long, Function callBackFunction) async {
+    updateUI = callBackFunction;
+    updateUI(BottomSheetStatus.searching);
+    await _initializeRideInFirestore(lat, long);
+    rideStream = rideReference.snapshots().map((snapshot) => Ride.fromDocument(snapshot)).asBroadcastStream();
+    rideSubscription = rideStream.listen(onRideUpdate); // Listen to changes in ride Document and update service
     int timesSearched = 0;
     double radius = 50;
+    isSearchingForRide = true;
+    goToNextDriver = false;
+    /// Main searching loop, get 10 closest drivers within the radius and in order of distance,
+    /// send a request, wait for an answer or timeout the request after 70 seconds. Continue until
+    /// a driver accepts or if there are no drivers or no driver accepted, waits 60 seconds for
+    /// availability to change and restart with a new list of drivers up to 5 times.
     while(isSearchingForRide) {
       List<Driver> nearbyDrivers = await driverService.getNearbyDriversList(radius);
-      print("There are ${nearbyDrivers.length} drivers nearby.");
+      if (showDebugPrints) print("There are ${nearbyDrivers.length} drivers nearby.");
       if(nearbyDrivers.length > 0 && timesSearched < 6) {
         for(int i = 0; i < nearbyDrivers.length; i++) {
-          Driver driver = nearbyDrivers[i];
-          rideReference.updateData({'status' : 'WAITING'});
-          _firestore.collection('drivers').document(driver.uid).collection('requests').document(userService.userID).setData(Request(
-            id: userService.userID,
-            name: "${userService.user.firstName}",
-            destinationAddress: destination,
-            pickupAddress: pickup,
-            price: "\$10.00",
-            photoURL: userService.user.profilePictureURL,
-            timeout: Timestamp.fromMillisecondsSinceEpoch(Timestamp.now().millisecondsSinceEpoch + 60000)
-          ).toJson());
-          print("Request sent to ${driver.uid}");
-          int iterations = 0;
-          while(!goToNextDriver) {
-            print("Request to ${driver.uid} sent $iterations seconds ago.");
-            await Future.delayed(const Duration(seconds: 1));
-            iterations += 1;
-            if (iterations >= 70) goToNextDriver = true;
+          if(isSearchingForRide) {
+            Driver driver = nearbyDrivers[i];
+            await rideReference.updateData({'status' : 'WAITING'});
+            await _sendRequestToDriver(driver);
+            if (showDebugPrints) print("Moving to next driver");
           }
-          goToNextDriver = false;
-          print("Moving to next driver");
         }
         timesSearched += 1;
       } else {
         timesSearched += 1;
         radius += 10;
-        print("No Drivers Found after $timesSearched tries, setting radius to $radius");
-        if(timesSearched > 5) isSearchingForRide = false;
+        if (showDebugPrints) print("No Drivers Found after $timesSearched tries, setting radius to $radius");
+        if(timesSearched > 5) { isSearchingForRide = false; }
+        else { await Future.delayed(const Duration(seconds: 60)); }
       }
     }
-
-    await rideReference.updateData({
-      'lastActivity': DateTime.now(),
-      'status': "CANCELED"
-    });
+    if (ride.status == "IN_PROGRESS") {
+      print("Ride is in progress with user: ${ride.driverName}");
+    } else {
+      await rideReference.updateData({
+        'lastActivity': DateTime.now(),
+        'status': "CANCELED"
+      });
+    }
   }
 
- /**
- * This function is for cancelling a ride
- * This simply updates the database to show the status
- * of the ride to be canceled
- */
-  void cancelRide() {
+  void cancelRide() async  {
+    isSearchingForRide = false;
+    goToNextDriver = true;
+    updateUI(BottomSheetStatus.closed);
     if(rideSubscription != null) rideSubscription.cancel();
+    DocumentSnapshot myRide = await rideReference.get();
     if(myRide.exists) {
+      print("Canceling ride");
       rideReference.updateData({
         'lastActivity': DateTime.now(),
         'status': "CANCELED",
@@ -160,9 +106,114 @@ class RideService {
     }
   }
 
-  /**
-   * This function returns a stream of ride objects from the database.
-   */
+  void endRide() async {
+    rideSubscription.cancel();
+    rideReference.updateData({
+      'lastActivity': DateTime.now(),
+      'status': "ENDED",
+    });
+  }
+
+  /// Sends a request to the specified driver using the service's current pickup and destination GeoFirePoints.
+  /// Sets a 60 second timeout on the request for the driver to answer by, and waits for 70 seconds to get a responce
+  /// before timing out locally.
+  Future<void> _sendRequestToDriver(Driver driver) async {
+    if (showDebugPrints)  print("Sending request to ${driver.uid}");
+    _firestore.collection('drivers').document(driver.uid).collection('requests').document(userService.userID).setData(Request(
+      id: userService.userID,
+      name: "${userService.user.firstName}",
+      destinationAddress: destination,
+      pickupAddress: pickup,
+      price: "\$10.00",
+      photoURL: userService.user.profilePictureURL,
+      timeout: Timestamp.fromMillisecondsSinceEpoch(Timestamp.now().millisecondsSinceEpoch + 60000)
+    ).toJson());
+    int iterations = 0;
+    // Timeout loop for current request
+    while(!goToNextDriver) {
+      if (showDebugPrints)  print("Request to ${driver.uid} sent $iterations seconds ago.");
+      await Future.delayed(const Duration(seconds: 1));
+      iterations += 1;
+      if (iterations >= 70) goToNextDriver = true;
+    }
+    goToNextDriver = false;
+  }
+
+  // This method is attached to the ride stream and run every time the ride document in firestore changes.
+  // Use it to keep the UI state in sync and the local Ride object updated.
+  void onRideUpdate(Ride updatedRide) {
+      if(updatedRide.status != null) {
+        bool wasRideAlreadyCanceled = false;
+        if(ride != null && ride.status != null) {
+          if(updatedRide.status == "CANCELED" && ride.status == "CANCELED") wasRideAlreadyCanceled = true;
+        }
+        ride = updatedRide;
+        switch (updatedRide.status) {
+          case 'CANCELED':
+            isSearchingForRide = false;
+            updateUI(BottomSheetStatus.closed);
+            if(!wasRideAlreadyCanceled) cancelRide();
+            print("Ride is canceled");
+            break;
+          case 'IN_PROGRESS':
+            isSearchingForRide = false;
+            goToNextDriver = true;
+            updateUI(BottomSheetStatus.rideDetails);
+            print("Ride is now IN_PROGRESS");
+            break;
+          case 'INITIALIZING':
+            updateUI(BottomSheetStatus.searching);
+            print("Ride is initializing");
+            break;
+          case 'SEARCHING':
+            goToNextDriver = true;
+            updateUI(BottomSheetStatus.searching);
+            print("Moving to next driver and setting ride back to searching.");
+            break;
+          case 'WAITING':
+            print("Waiting on response from driver.");
+            break;
+          case 'ENDED':
+            isSearchingForRide = false;
+            goToNextDriver = false;
+            updateUI(BottomSheetStatus.closed);
+            print("Ride has ended.");
+            break;
+          default:
+        }
+        if (showDebugPrints) print("Updated ride status from ${ride.status} to ${updatedRide.status}");
+      }
+  }
+
+  Future<void> _initializeRideInFirestore(double lat, double long) async {
+    destination = geo.point(latitude: lat, longitude: long);
+    pickup = locationService.getCurrentGeoFirePoint();
+    DocumentSnapshot myRide = await rideReference.get();
+    if (!myRide.exists) { // Create new ride document for the user
+      await rideReference.setData({
+        'uid': userService.userID,
+        'userName': userService.user.firstName,
+        'userPhotoURL': userService.user.profilePictureURL,
+        'drid': '',
+        'lastActivity': DateTime.now(),
+        'pickupAddress': pickup.data,
+        'destinationAddress': destination.data,
+        'status': "INITIALIZING"
+      });
+    } else { // Update user's ride document
+      await rideReference.updateData({
+        'uid': userService.userID,
+        'userName': userService.user.firstName,
+        'userPhotoURL': userService.user.profilePictureURL,
+        'drid': '',
+        'lastActivity': DateTime.now(),
+        'pickupAddress': pickup.data,
+        'destinationAddress': destination.data,
+        'status': "INITIALIZING"
+      });
+    }
+  }
+
   Stream<Ride> getRideStream() {
     return rideReference.snapshots()
         .map((snapshot) {

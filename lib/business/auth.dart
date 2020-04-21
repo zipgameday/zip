@@ -121,18 +121,6 @@ class AuthService {
       }
   }
 
-  Stream<User> getUser(String userID) {
-    return _db
-        .collection("users")
-        .where("userID", isEqualTo: userID)
-        .snapshots()
-        .map((QuerySnapshot snapshot) {
-      return snapshot.documents.map((doc) {
-        return User.fromDocument(doc);
-      }).first;
-    });
-  }
-
   Future<void> sendResetPassword(String email) async{
     return _auth.sendPasswordResetEmail(email: email);
   }

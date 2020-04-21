@@ -13,7 +13,6 @@ class User {
   final String homeAddress;
   DateTime lastActivity;
   final bool isDriver;
-  final String fcm_token;
   final double defaultTip;
 
   User({
@@ -27,7 +26,6 @@ class User {
     this.lastActivity,
     this.profilePictureURL,
     this.isDriver,
-    this.fcm_token,
     this.defaultTip
   });
 
@@ -43,7 +41,6 @@ class User {
       'homeAddress': homeAddress == null ? '' : homeAddress,
       'profilePictureURL': profilePictureURL == null ? '' : profilePictureURL,
       'isDriver': isDriver == null ? false : isDriver,
-      'fcm_token': fcm_token == null ? '' : fcm_token,
       'defaultTip': defaultTip == null ? 0 : defaultTip 
     };
   }
@@ -63,7 +60,6 @@ class User {
       homeAddress: doc['homeAddress'] == null ? '' : doc['homeAddress'],
       profilePictureURL: doc['profilePictureURL'] == null ? '' : doc['profilePictureURL'],
       isDriver: doc['isDriver'] == null ? false : doc['isDriver'],
-      fcm_token: doc['fcm_token'] == null ? '' : doc['fcm_token'],
       defaultTip: defTip.toDouble()
     );
     return user;
@@ -81,7 +77,6 @@ class User {
       homeAddress: '',
       profilePictureURL: fuser.photoUrl,
       isDriver: false,
-      fcm_token: '',
       defaultTip: 0.0
     );
     return user;

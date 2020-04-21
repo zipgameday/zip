@@ -8,11 +8,11 @@ class Driver {
   final String lastName;
   final String profilePictureURL;
   final DateTime lastActivity;
-  final String fcm_token;
+  final String fcm_token; // Firebase Cloud Messaging Token
   final bool isWorking;
   final bool isAvailable;
   final GeoFirePoint geoFirePoint;
-  final String currentRide;
+  final String currentRideID;
 
   Driver({
     this.uid,
@@ -24,7 +24,7 @@ class Driver {
     this.fcm_token,
     this.isWorking,
     this.isAvailable,
-    this.currentRide
+    this.currentRideID
   });
 
   Map<String, Object> toJson() {
@@ -38,7 +38,7 @@ class Driver {
       'fcm_token': fcm_token == null ? '' : fcm_token,
       'isWorking': isWorking == null ? false : isWorking,
       'isAvailable': isAvailable == null ? false : isAvailable,
-      'currentRide': currentRide == null ? '' : currentRide
+      'currentRideID': currentRideID == null ? '' : currentRideID
     };
   }
 
@@ -53,7 +53,7 @@ class Driver {
       fcm_token: doc['fcm_token'],
       isWorking: doc['isWorking'],
       isAvailable: doc['isAvailable'],
-      currentRide: doc['currentRide']
+      currentRideID: doc['currentRideID']
     );
     return driver;
   }

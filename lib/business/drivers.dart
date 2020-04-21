@@ -6,12 +6,14 @@ import 'package:zip/business/location.dart';
 import 'package:zip/business/user.dart';
 import 'package:zip/models/driver.dart';
 import 'package:zip/models/request.dart';
+import 'package:zip/models/rides.dart';
 import 'package:zip/models/user.dart';
 import 'package:zip/ui/screens/driver_main_screen.dart';
 
 class DriverService {
   static final DriverService _instance = DriverService._internal();
   final Firestore _firestore = Firestore.instance;
+  final bool showDebugPrints = true;
   Geoflutterfire geo = Geoflutterfire();
   LocationService locationService = LocationService();
   StreamSubscription<Position> locationSub;
@@ -29,13 +31,16 @@ class DriverService {
   StreamSubscription<Request> requestSub;
   Stream<Request> requestStream;
   Request currentRequest;
-  Function callbackFunction;
+  Stream<Ride> rideStream;
+  StreamSubscription<Ride> rideSub;
+  Ride currentRide;
+  Function uiCallbackFunction;
 
   factory DriverService() {
     return _instance;
   }
 
-  // TODO: Update to use user.isDriver before initializing
+  // TODO: Update to use user.isDriver before initializing since only driver users will need the service.
 
   DriverService._internal() {
     print("DriverService Created");
@@ -45,7 +50,7 @@ class DriverService {
   }
 
   Future<bool> setupService() async {
-    _updateDriverRecord();
+    await _updateDriverRecord();
     this.driverSub = driverReference.snapshots().map((DocumentSnapshot snapshot) {
       return Driver.fromDocument(snapshot);
     }).listen((driver) {
@@ -70,8 +75,8 @@ class DriverService {
   }
 
   Future<void> startDriving(Function callback) async {
-    callbackFunction = callback;
-    callbackFunction(DriverBottomSheetStatus.searching);
+    uiCallbackFunction = callback;
+    uiCallbackFunction(DriverBottomSheetStatus.searching);
     requestStream = requestCollection.snapshots().map((event) => event.documents.map( (e) => Request.fromDocument(e)).toList().elementAt(0)).asBroadcastStream();
     driverReference.updateData({
       'lastActivity': DateTime.now(),
@@ -87,13 +92,13 @@ class DriverService {
 
   onRequestRecieved(Request req) {
     print("Request recieved from ${req.name} recieved, timeout at ${req.timeout}");
-    callbackFunction(DriverBottomSheetStatus.confirmation);
     currentRequest = req;
     var seconds = (req.timeout.seconds - Timestamp.now().seconds);
     Future.delayed(Duration(seconds : seconds)).then((value) {
       print("Request recieved from ${req.name} timed out");
       declineRequest(req.id);
     });
+    uiCallbackFunction(DriverBottomSheetStatus.confirmation);
   }
 
   Future<void> declineRequest(String requestID) async {
@@ -101,37 +106,82 @@ class DriverService {
     DocumentSnapshot requestRef = await requestCollection.document(requestID).get();
     if(requestRef.exists) {
       print("Request $requestID exists and will be deleted.");
-      _firestore.collection('rides').document(requestID).updateData({'status' : "SEARCHING"});
-      requestCollection.document(requestID).delete(); 
+      await _firestore.collection('rides').document(requestID).updateData({'status' : "SEARCHING"});
+      await requestCollection.document(requestID).delete();
+      uiCallbackFunction(DriverBottomSheetStatus.searching);
     }
-    callbackFunction(DriverBottomSheetStatus.searching);
     print("Request is already deleted"); // TODO: Delete
-    _firestore.collection('rides').document(requestID).get().then((value) => print("Request status is ${value.data['status']}, should be 'SEARCHING'"));
+    _firestore.collection('rides').document(requestID).get().then((value) => print("Request status is ${value.data['status']}, should be 'WAITING'"));
   }
 
   Future<void> acceptRequest(String requestID) async {
     print("Accepting request: $requestID");
     DocumentSnapshot requestRef = await _firestore.collection('rides').document(requestID).get();
+    rideStream = _firestore.collection('rides').document(requestID).snapshots().map((event) => Ride.fromDocument(event));
+    rideSub = rideStream.listen(_onRideUpdate);
     if(requestRef.exists) {
       print("Request $requestID exists and will be deleted after acceptance.");
-      _firestore.collection('rides').document(requestID).updateData({'status' : "IN_PROGRESS"});
-      driverReference.updateData({
+      await driverReference.updateData({
         'isAvailable' : false,
-        'currentRide' : requestID
+        'currentRideID' : requestID
       });
-      requestCollection.document(requestID).delete(); 
+      await _firestore.collection('rides').document(requestID).updateData({
+        'status' : "IN_PROGRESS",
+        'drid': userService.userID,
+        'driverName': userService.user.firstName,
+        'driverPhotoURL': userService.user.profilePictureURL
+      });
+      await requestCollection.document(requestID).delete();
     }
-    callbackFunction(DriverBottomSheetStatus.ride);
   }
 
   void stopDriving() {
     driverReference.updateData({
       'lastActivity': DateTime.now(),
       'isAvailable': false,
-      'isWorking': false
+      'isWorking': false,
+      'currentRideID': ''
     });
     if(requestSub != null ) requestSub.cancel();
-    callbackFunction(DriverBottomSheetStatus.closed);
+    if(driverSub != null) driverSub.cancel();
+    if(rideSub != null) rideSub.cancel();
+    if(uiCallbackFunction != null) uiCallbackFunction(DriverBottomSheetStatus.closed);
+  }
+
+  void cancelRide() async {
+    if(currentRide.status != "CANCELED") {
+      await _firestore.collection('rides').document(driver.currentRideID).updateData({
+        'lastActivity' : DateTime.now(),
+        'status' : 'CANCELED',
+        'drid' : '',
+        'driverName' : '',
+        'driverPhotoURL': ''
+      });
+    }
+    stopDriving();
+  }
+
+  void _onRideUpdate(Ride updatedRide) {
+    if(updatedRide != null) {
+        if (showDebugPrints) print("Updated ride status to ${updatedRide.status}");
+        currentRide = updatedRide;
+        switch (updatedRide.status) {
+          case 'CANCELED':
+            uiCallbackFunction(DriverBottomSheetStatus.closed);
+            cancelRide();
+            if (showDebugPrints) print("Ride is canceled");
+            break;
+          case 'IN_PROGRESS':
+            uiCallbackFunction(DriverBottomSheetStatus.rideDetails);
+            if (showDebugPrints) print("Ride is now IN_PROGRESS");
+            break;
+          case 'ENDED':
+            uiCallbackFunction(DriverBottomSheetStatus.closed);
+            if (showDebugPrints) print("Ride has ended.");
+            break;
+          default:
+        }
+      }
   }
 
   Stream<Driver> getDriverStream() {
