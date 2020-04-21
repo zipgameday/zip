@@ -9,11 +9,12 @@ class User {
   final String phone;
   final String email;
   final String profilePictureURL;
-  final num credits;
+  final double credits;
   final String homeAddress;
   DateTime lastActivity;
   final bool isDriver;
   final String fcm_token;
+  final double defaultTip;
 
   User({
     this.uid,
@@ -26,7 +27,8 @@ class User {
     this.lastActivity,
     this.profilePictureURL,
     this.isDriver,
-    this.fcm_token
+    this.fcm_token,
+    this.defaultTip
   });
 
   Map<String, Object> toJson() {
@@ -41,12 +43,14 @@ class User {
       'homeAddress': homeAddress == null ? '' : homeAddress,
       'profilePictureURL': profilePictureURL == null ? '' : profilePictureURL,
       'isDriver': isDriver == null ? false : isDriver,
-      'fcm_token': fcm_token == null ? '' : fcm_token
+      'fcm_token': fcm_token == null ? '' : fcm_token,
+      'defaultTip': defaultTip == null ? 0 : defaultTip 
     };
   }
 
   factory User.fromJson(Map<String, Object> doc) {
     num creds = doc['credits'] == null ? 0.0 : doc['credits'];
+    num defTip = doc['defaultTip'] == null ? 0.0 : doc['defaultTip'];
 
     User user = new User(
       uid: doc['uid'],
@@ -59,7 +63,8 @@ class User {
       homeAddress: doc['homeAddress'] == null ? '' : doc['homeAddress'],
       profilePictureURL: doc['profilePictureURL'] == null ? '' : doc['profilePictureURL'],
       isDriver: doc['isDriver'] == null ? false : doc['isDriver'],
-      fcm_token: doc['fcm_token'] == null ? '' : doc['fcm_token']
+      fcm_token: doc['fcm_token'] == null ? '' : doc['fcm_token'],
+      defaultTip: defTip.toDouble()
     );
     return user;
   }
@@ -76,7 +81,8 @@ class User {
       homeAddress: '',
       profilePictureURL: fuser.photoUrl,
       isDriver: false,
-      fcm_token: ''
+      fcm_token: '',
+      defaultTip: 0.0
     );
     return user;
   }
