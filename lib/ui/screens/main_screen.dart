@@ -149,6 +149,10 @@ class _MainScreenState extends State<MainScreen> {
                             this.details =
                                 await _places.getDetailsByPlaceId(v.placeId);
                           }
+                          else {
+                            search_controller.text = '';
+                            this.address = '';
+                          }
                           search_node.unfocus();
                           _checkPrice();
                           return null;
