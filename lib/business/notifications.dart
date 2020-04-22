@@ -92,23 +92,6 @@ class NotificationService {
         'platform': Platform.operatingSystem // optional
       });
     }
-
-    // Old method for reference - reevalute if need to set token on driver profile as well
-    /* _fcm.getToken().then((token) async {
-          if (FirebaseAuth.instance.currentUser() != null) {
-            if (token != null) {
-              await Firestore.instance
-                  .collection('users')
-                  .document(userService.userID)
-                  .updateData({'fcm_token': token});
-              if (userService.user.isDriver == true) {
-                await Firestore.instance.collection('drivers').document(userService.userID).updateData({
-                  'fcm_token': token
-                });
-              }
-            }
-          }
-        }); */
   }
 
 }

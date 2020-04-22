@@ -51,7 +51,7 @@ class RideService {
     updateUI(BottomSheetStatus.searching);
     await _initializeRideInFirestore(lat, long);
     rideStream = rideReference.snapshots().map((snapshot) => Ride.fromDocument(snapshot)).asBroadcastStream();
-    rideSubscription = rideStream.listen(onRideUpdate); // Listen to changes in ride Document and update service
+    rideSubscription = rideStream.listen(_onRideUpdate); // Listen to changes in ride Document and update service
     int timesSearched = 0;
     double radius = 50;
     isSearchingForRide = true;
@@ -141,7 +141,7 @@ class RideService {
 
   // This method is attached to the ride stream and run every time the ride document in firestore changes.
   // Use it to keep the UI state in sync and the local Ride object updated.
-  void onRideUpdate(Ride updatedRide) {
+  void _onRideUpdate(Ride updatedRide) {
       if(updatedRide.status != null) {
         bool wasRideAlreadyCanceled = false;
         if(ride != null && ride.status != null) {

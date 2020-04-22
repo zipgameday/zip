@@ -22,18 +22,19 @@ class DriverService {
   UserService userService = UserService();
   List<Driver> nearbyDriversList;
   Stream<List<Driver>> nearbyDriversListStream;
-  Stream<User> userStream;
-  User user;
   GeoFirePoint myLocation;
   Driver driver;
   StreamSubscription<Driver> driverSub;
+  // Request specific variables
   CollectionReference requestCollection;
   StreamSubscription<Request> requestSub;
   Stream<Request> requestStream;
   Request currentRequest;
+  // Ride specific varaibles
   Stream<Ride> rideStream;
   StreamSubscription<Ride> rideSub;
   Ride currentRide;
+  
   Function uiCallbackFunction;
 
   factory DriverService() {
@@ -57,12 +58,12 @@ class DriverService {
       this.driver = driver;
     });
     if (locationSub != null) locationSub.cancel();
-    locationSub = locationService.positionStream.listen(updatePosition);
+    locationSub = locationService.positionStream.listen(_updatePosition);
     print("DriverService setup");
     return true;
   }
 
-  void updatePosition(Position pos) {
+  void _updatePosition(Position pos) {
     if(driver != null) {
       if (driver.isWorking) {
         this.myLocation = geo.point(latitude: pos.latitude, longitude: pos.longitude);
@@ -85,12 +86,12 @@ class DriverService {
       'isWorking': true
     });
     requestSub = requestStream.listen((request) {
-      if(request.name != null) onRequestRecieved(request); 
+      if(request.name != null) _onRequestRecieved(request); 
     });
     await Future.delayed(const Duration(milliseconds: 500));
   }
 
-  onRequestRecieved(Request req) {
+  _onRequestRecieved(Request req) {
     print("Request recieved from ${req.name} recieved, timeout at ${req.timeout}");
     currentRequest = req;
     var seconds = (req.timeout.seconds - Timestamp.now().seconds);
